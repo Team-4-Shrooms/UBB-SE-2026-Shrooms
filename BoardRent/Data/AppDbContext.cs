@@ -44,7 +44,7 @@ namespace BoardRent.Data
                 );
                 
                 -- Users Table
-                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Users')
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'User')
                 CREATE TABLE [User] (
                     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                     Username NVARCHAR(100) NOT NULL UNIQUE,
@@ -73,7 +73,7 @@ namespace BoardRent.Data
                 );
 
                 -- FailedLoginAttempt Table
-                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'FailedLoginAttempts')
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'FailedLoginAttempt')
                 CREATE TABLE FailedLoginAttempt (
                     UserId UNIQUEIDENTIFIER PRIMARY KEY,
                     FailedAttempts INT NOT NULL DEFAULT 0,
