@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-//using BoardRent.Data;
+using BoardRent.Data;
 using BoardRent.Views;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -24,8 +24,8 @@ namespace BoardRent
             _window.Activate();
 
             // Create DB tables on first launch
-            //var db = new AppDbContext();
-            //db.EnsureCreated();
+            var db = new AppDbContext();
+            db.EnsureCreated();
 
             //Start at login page
             //NavigateTo(typeof(LoginPage));
