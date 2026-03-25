@@ -14,7 +14,6 @@ namespace BoardRent.Services
 
         Task<ServiceResult<string>> ForgotPasswordAsync();
 
-        Task<ServiceResult<UserProfileDto>> LoginMockAsync();
     }
 }
 

@@ -113,37 +113,5 @@ namespace BoardRent.Services
             return ServiceResult<string>.Ok("Please contact the Administrator at admin@boardrent.com to reset your password.");
         }
 
-        public async Task<ServiceResult<UserProfileDto>> LoginMockAsync()
-        {
-            // Hardcoded test user
-            var testUserId = Guid.Parse("D69D985C-3F47-4E8B-BE5A-CB7549F68B02");
-
-            var profileDto = new UserProfileDto
-            {
-                Id = testUserId,
-                Username = "admin",
-                DisplayName = "Administrator",
-                Email = "admin@boardrent.com",
-                PhoneNumber =null,
-                AvatarUrl = null,
-                Role = null,
-                IsSuspended = false,
-                Country = null,
-                City = null,
-                StreetName = null,
-                StreetNumber = null
-            };
-
-            // Populate session like real login
-            SessionContext.GetInstance().Populate(new BoardRent.Domain.User
-            {
-                Id = testUserId,
-                Username = profileDto.Username,
-                DisplayName = profileDto.DisplayName,
-                Email = profileDto.Email
-            }, "User");
-
-            return ServiceResult<UserProfileDto>.Ok(profileDto);
-        }
     }
 }

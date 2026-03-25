@@ -100,13 +100,13 @@
                                      Header="Current Password"
                                      Text="{Binding CurrentPassword, Mode=TwoWay}"/>
 
-                            <TextBox 
+                            <PasswordBox 
                                      Header="New Password"
-                                     Text="{Binding NewPassword, Mode=TwoWay}"/>
+                                     Password="{Binding NewPassword, Mode=TwoWay}"/>
 
-                            <TextBox
+                            <PasswordBox
                                      Header="Confirm New Password"
-                                     Text="{Binding ConfirmPassword, Mode=TwoWay}"/>
+                                     Password="{Binding ConfirmPassword, Mode=TwoWay}"/>
                             <Button Content="Save Changes"
                                 Background="Green"
                                 Foreground="White"
@@ -117,8 +117,8 @@
                     </ScrollViewer>
                     
                 </TabViewItem>
-                <TabViewItem Header="Booking History"/>
-                <TabViewItem Header="My Listings"/>
+                <TabViewItem Header="Booking History"  IsClosable="False"/>
+                <TabViewItem Header="My Listings"  IsClosable="False"/>
             </TabView>
         </StackPanel>
     </Grid>
