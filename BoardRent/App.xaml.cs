@@ -4,12 +4,14 @@ using Microsoft.UI.Xaml.Controls;
 using BoardRent.Data;
 using BoardRent.Views;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using BoardRent.Services;
+using BoardRent.Repositories;
 
 namespace BoardRent
 {
     public partial class App : Application
     {
-        private static Window _window;
+        public static Window _window;
         private static Frame _rootFrame;
 
         public App()
@@ -17,7 +19,7 @@ namespace BoardRent
             InitializeComponent();
         }
         
-        protected override void OnLaunched(LaunchActivatedEventArgs args)
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
             _rootFrame = new Frame();
@@ -28,8 +30,23 @@ namespace BoardRent
             var db = new AppDbContext();
             db.EnsureCreated();
 
+            var dbContext = new AppDbContext();
+
             //Start at login page
-            NavigateTo(typeof(LoginPage));
+            //NavigateTo(typeof(LoginPage));
+            var userRepo = new UserRepository(db);
+            var failedLoginRepo = new FailedLoginRepository(dbContext);
+
+            IAuthService authService = new AuthService(userRepo, failedLoginRepo);
+            IUserService userService = new UserService(userRepo);
+
+            var loginResult = await authService.LoginMockAsync();
+
+            if (loginResult.Success)
+            {
+                // Navigate to profile page now that the session is populated
+                App.NavigateTo(typeof(ProfilePage));
+            }
         }
 
         public static void NavigateTo(Type pageType)
