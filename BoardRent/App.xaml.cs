@@ -13,7 +13,7 @@ namespace BoardRent
 {
     public partial class App : Application
     {
-        private static Window _window;
+        public static Window _window;
         private static Frame _rootFrame;
 
         public App()

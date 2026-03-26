@@ -1,5 +1,6 @@
 ﻿using BoardRent.DTOs;
 using BoardRent.Services;
+using BoardRent.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
-                // not finished
+                App.NavigateTo(typeof(ProfilePage));
             }
             else
             {

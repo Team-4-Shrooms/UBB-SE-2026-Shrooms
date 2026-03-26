@@ -112,5 +112,6 @@ namespace BoardRent.Services
         {
             return ServiceResult<string>.Ok("Please contact the Administrator at admin@boardrent.com to reset your password.");
         }
+
     }
 }
