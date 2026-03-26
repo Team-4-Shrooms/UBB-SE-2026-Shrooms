@@ -49,7 +49,14 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
-                App.NavigateTo(typeof(ProfilePage));
+                if (result.Data?.Role == "Administrator")
+                {
+                    App.NavigateTo(typeof(AdminPage));
+                }
+                else
+                {
+                    App.NavigateTo(typeof(ProfilePage));
+                }
             }
             else
             {

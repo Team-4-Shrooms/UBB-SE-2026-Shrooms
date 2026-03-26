@@ -12,7 +12,6 @@ namespace BoardRent.DTOs
         public string AvatarUrl { get; set; }
         public string Role { get; set; }
         public bool IsSuspended { get; set; }
-
         public string Country { get; set; }
         public string City { get; set; }
         public string StreetName { get; set; }

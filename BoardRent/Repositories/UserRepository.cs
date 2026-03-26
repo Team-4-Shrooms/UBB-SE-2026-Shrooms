@@ -28,7 +28,10 @@ namespace BoardRent.Repositories
             using var reader = await command.ExecuteReaderAsync();
             if (reader.Read())
             {
-                return MapUser(reader);
+                var user = MapUser(reader);
+                reader.Close();
+                await LoadRolesForUser(user);
+                return user;
             }
 
             return null;
@@ -46,7 +49,10 @@ namespace BoardRent.Repositories
             using var reader = await command.ExecuteReaderAsync();
             if (reader.Read())
             {
-                return MapUser(reader);
+                var user = MapUser(reader);
+                reader.Close();
+                await LoadRolesForUser(user);
+                return user;
             }
 
             return null;
@@ -64,7 +70,10 @@ namespace BoardRent.Repositories
             using var reader = await command.ExecuteReaderAsync();
             if (reader.Read())
             {
-                return MapUser(reader);
+                var user = MapUser(reader);
+                reader.Close();
+                await LoadRolesForUser(user);
+                return user;
             }
 
             return null;
@@ -86,6 +95,12 @@ namespace BoardRent.Repositories
             while (await reader.ReadAsync())
             {
                 users.Add(MapUser(reader));
+            }
+            reader.Close();
+
+            foreach (var user in users)
+            {
+                await LoadRolesForUser(user);
             }
 
             return users;
@@ -156,9 +171,25 @@ namespace BoardRent.Repositories
             await command.ExecuteNonQueryAsync();
         }
 
+        public async Task AssignRoleAsync(Guid userId, string roleName)
+        {
+            using var connection = _dbContext.CreateConnection();
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                DECLARE @RoleId UNIQUEIDENTIFIER = (SELECT Id FROM Role WHERE Name = @RoleName);
+                IF @RoleId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM UserRoles WHERE UserId = @UserId AND RoleId = @RoleId)
+                    INSERT INTO UserRoles (UserId, RoleId) VALUES (@UserId, @RoleId)";
+            command.Parameters.AddWithValue("@UserId", userId);
+            command.Parameters.AddWithValue("@RoleName", roleName);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
         private User MapUser(SqlDataReader reader)
         {
-            return new User
+            var user = new User
             {
                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
@@ -176,6 +207,32 @@ namespace BoardRent.Repositories
                 City = reader.IsDBNull(reader.GetOrdinal("City")) ? null : reader.GetString(reader.GetOrdinal("City")),
                 Roles = new List<Role>()
             };
+
+            return user;
+        }
+
+        private async Task LoadRolesForUser(User user)
+        {
+            using var connection = _dbContext.CreateConnection();
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT r.Id, r.Name
+                FROM Role r
+                INNER JOIN UserRoles ur ON r.Id = ur.RoleId
+                WHERE ur.UserId = @UserId";
+            command.Parameters.AddWithValue("@UserId", user.Id);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                user.Roles.Add(new Role
+                {
+                    Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                    Name = reader.GetString(reader.GetOrdinal("Name"))
+                });
+            }
         }
     }
 }

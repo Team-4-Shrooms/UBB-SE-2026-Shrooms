@@ -29,6 +29,8 @@ namespace BoardRent
                 .AddTransient<RegisterViewModel>()
 
                 .AddSingleton<IAuthService, AuthService>()
+                .AddSingleton<IUserService, UserService>()
+                .AddSingleton<IAdminService, AdminService>()
 
                 .AddSingleton<IUserRepository, UserRepository>()
                 .AddSingleton<IFailedLoginRepository, FailedLoginRepository>()
@@ -53,6 +55,12 @@ namespace BoardRent
         public static void NavigateTo(Type pageType)
         {
             _rootFrame?.Navigate(pageType);
+        }
+
+        public static void NavigateToAndClearBackStack(Type pageType)
+        {
+            _rootFrame?.Navigate(pageType);
+            _rootFrame?.BackStack.Clear();
         }
 
         public static void NavigateBack()

@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WinRT.Interop;
@@ -89,6 +90,12 @@ namespace BoardRent.ViewModels
         private string _error;
         public string ErrorMessage { get => _error; set => SetProperty(ref _error, value); }
 
+        private string _profileMessage;
+        public string ProfileMessage { get => _profileMessage; set => SetProperty(ref _profileMessage, value); }
+
+        private string _profileError;
+        public string ProfileError { get => _profileError; set => SetProperty(ref _profileError, value); }
+
         public async Task LoadProfile()
         {
             var userId = SessionContext.GetInstance().UserId;
@@ -114,6 +121,27 @@ namespace BoardRent.ViewModels
 
         private async Task SaveProfile()
         {
+            ProfileMessage = string.Empty;
+            ProfileError = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(DisplayName) || DisplayName.Trim().Length < 2 || DisplayName.Trim().Length > 50)
+            {
+                ProfileError = "Display name must be between 2 and 50 characters.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                ProfileError = "Email is required.";
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(PhoneNumber) && !Regex.IsMatch(PhoneNumber.Trim(), @"^\+?[0-9\s\-()]{7,15}$"))
+            {
+                ProfileError = "Please enter a valid phone number.";
+                return;
+            }
+
             var userId = SessionContext.GetInstance().UserId;
 
             var dto = new UserProfileDto
@@ -133,11 +161,11 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
-                Debug.WriteLine("Profile updated successfully");
+                ProfileMessage = "Profile updated successfully.";
             }
             else
             {
-                Debug.WriteLine("Failed to update profile");
+                ProfileError = result.Error ?? "Failed to update profile.";
             }
         }
 
@@ -188,20 +216,59 @@ namespace BoardRent.ViewModels
         {
             ErrorMessage = "";
 
+            if (string.IsNullOrWhiteSpace(CurrentPassword))
+            {
+                ErrorMessage = "Please enter your current password.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                ErrorMessage = "Please enter a new password.";
+                return;
+            }
+
+            if (NewPassword.Length < 8)
+            {
+                ErrorMessage = "Password must be at least 8 characters long.";
+                return;
+            }
+
+            if (!Regex.IsMatch(NewPassword, @"[A-Z]"))
+            {
+                ErrorMessage = "Password must contain at least one uppercase letter.";
+                return;
+            }
+
+            if (!Regex.IsMatch(NewPassword, @"[0-9]"))
+            {
+                ErrorMessage = "Password must contain at least one number.";
+                return;
+            }
+
+            if (!Regex.IsMatch(NewPassword, @"[^a-zA-Z0-9]"))
+            {
+                ErrorMessage = "Password must contain at least one special character.";
+                return;
+            }
+
+            if (NewPassword != ConfirmPassword)
+            {
+                ErrorMessage = "Passwords do not match.";
+                return;
+            }
+
             var userId = SessionContext.GetInstance().UserId;
             var result = await _userService.ChangePasswordAsync(userId, CurrentPassword, NewPassword);
-            CurrentPassword = NewPassword;
 
             if (result.Success)
             {
-                ErrorMessage = "Password updated successfully!";
-                CurrentPassword = NewPassword = ConfirmPassword = ""; 
+                App.NavigateToAndClearBackStack(typeof(LoginPage));
             }
             else
             {
                 ErrorMessage = result.Error ?? "Unknown error occurred";
             }
-            //App.NavigateTo(typeof(LoginPage));
         }
 
 

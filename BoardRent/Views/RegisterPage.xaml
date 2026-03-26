@@ -12,25 +12,46 @@
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Width="400" Spacing="15" Margin="0,40,0,40">
 
                 <TextBlock Text="Create an account" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                
+
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" HorizontalAlignment="Center" TextWrapping="Wrap" />
 
-                <TextBox Header="Display Name" Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Header="Username" Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Header="Email" Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <StackPanel Spacing="4">
+                    <TextBox Header="Display Name" Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{Binding DisplayNameError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
 
-                <PasswordBox Header="Password" Password="{Binding Password, Mode=TwoWay}" />
-                <PasswordBox Header="Confirm Password" Password="{Binding ConfirmPassword, Mode=TwoWay}" />
+                <StackPanel Spacing="4">
+                    <TextBox Header="Username" Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{Binding UsernameError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
 
-                <TextBox Header="Phone Number" Text="{Binding PhoneNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <StackPanel Spacing="4">
+                    <TextBox Header="Email" Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{Binding EmailError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <PasswordBox Header="Password" Password="{Binding Password, Mode=TwoWay}" />
+                    <TextBlock Text="{Binding PasswordError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <PasswordBox Header="Confirm Password" Password="{Binding ConfirmPassword, Mode=TwoWay}" />
+                    <TextBlock Text="{Binding ConfirmPasswordError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBox Header="Phone Number (optional)" Text="{Binding PhoneNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{Binding PhoneNumberError}" Foreground="Red" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
 
                 <Grid ColumnSpacing="15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Header="Country" Text="{Binding Country, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" />
-                    <TextBox Header="City" Text="{Binding City, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" />
+                    <TextBox Header="Country (optional)" Text="{Binding Country, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" />
+                    <TextBox Header="City (optional)" Text="{Binding City, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" />
                 </Grid>
 
                 <Grid ColumnSpacing="15">
@@ -38,20 +59,20 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Header="Street Name" Text="{Binding StreetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" />
-                    <TextBox Header="Number" Text="{Binding StreetNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" />
+                    <TextBox Header="Street Name (optional)" Text="{Binding StreetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" />
+                    <TextBox Header="Number (optional)" Text="{Binding StreetNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" />
                 </Grid>
 
                 <ProgressRing IsActive="{Binding IsLoading}" HorizontalAlignment="Center" Margin="0,10,0,0" />
 
-                <Button Content="Register" 
-                        Command="{Binding RegisterCommand}" 
-                        HorizontalAlignment="Stretch" 
-                        Style="{StaticResource AccentButtonStyle}" 
+                <Button Content="Register"
+                        Command="{Binding RegisterCommand}"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource AccentButtonStyle}"
                         Margin="0,10,0,0"/>
 
                 <HyperlinkButton Content="Already have an account?" Command="{Binding GoToLoginCommand}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -51,11 +51,12 @@ namespace BoardRent.Services
         public async Task<ServiceResult<bool>> UpdateProfileAsync(Guid userId, UserProfileDto dto)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) throw new Exception("User not found");
+            if (user == null)
+                return ServiceResult<bool>.Fail("User not found.");
 
             var existing = await _userRepository.GetByEmailAsync(dto.Email);
             if (existing != null && existing.Id != userId)
-                throw new Exception("Email already in use");
+                return ServiceResult<bool>.Fail("This email address is already taken.");
 
             user.DisplayName = dto.DisplayName;
             user.Email = dto.Email;

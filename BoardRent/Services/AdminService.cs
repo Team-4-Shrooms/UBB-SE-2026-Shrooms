@@ -87,8 +87,8 @@ namespace BoardRent.Services
             if (!IsAuthorized())
                 return ServiceResult<bool>.Fail("Unauthorized access.");
 
-            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
-                return ServiceResult<bool>.Fail("Password must be at least 6 characters long.");
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+                return ServiceResult<bool>.Fail("Password must be at least 8 characters long.");
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)

@@ -31,6 +31,9 @@ namespace BoardRent.ViewModels
         [NotifyCanExecuteChangedFor(nameof(NextPageCommand))]
         private int totalPages = 1;
 
+        [ObservableProperty]
+        private string successMessage = string.Empty;
+
         public AdminViewModel(IAdminService adminService)
         {
             _adminService = adminService;
@@ -41,14 +44,13 @@ namespace BoardRent.ViewModels
         {
             IsLoading = true;
             ErrorMessage = string.Empty;
+            SuccessMessage = string.Empty;
 
             var result = await _adminService.GetAllUsersAsync(CurrentPage, PageSize);
             if (result.Success && result.Data != null)
             {
                 Users = new ObservableCollection<UserProfileDto>(result.Data);
-                // Currently repository doesn't give TotalPages, assume 1 for now or dynamically calculate if data length < PageSize
-                // This is a placeholder since blocked on repositories
-                TotalPages = result.Data.Count == PageSize ? CurrentPage + 1 : CurrentPage; 
+                TotalPages = result.Data.Count == PageSize ? CurrentPage + 1 : CurrentPage;
             }
             else
             {
@@ -62,11 +64,13 @@ namespace BoardRent.ViewModels
         private async Task SuspendUserAsync()
         {
             if (SelectedUser == null) return;
+            ErrorMessage = string.Empty;
+            SuccessMessage = string.Empty;
+
             var result = await _adminService.SuspendUserAsync(SelectedUser.Id);
             if (result.Success)
             {
-                SelectedUser.IsSuspended = true;
-                // Refresh list or trigger property changed
+                SuccessMessage = $"User {SelectedUser.Username} has been suspended.";
                 await LoadUsersAsync();
             }
             else
@@ -79,10 +83,13 @@ namespace BoardRent.ViewModels
         private async Task UnsuspendUserAsync()
         {
             if (SelectedUser == null) return;
+            ErrorMessage = string.Empty;
+            SuccessMessage = string.Empty;
+
             var result = await _adminService.UnsuspendUserAsync(SelectedUser.Id);
             if (result.Success)
             {
-                SelectedUser.IsSuspended = false;
+                SuccessMessage = $"User {SelectedUser.Username} has been unsuspended.";
                 await LoadUsersAsync();
             }
             else
@@ -95,12 +102,14 @@ namespace BoardRent.ViewModels
         private async Task ResetPasswordAsync()
         {
             if (SelectedUser == null) return;
-            // Generate or prompt for a password. Using a default secure one for this example.
-            var tempPassword = "NewPassword123!"; 
+            ErrorMessage = string.Empty;
+            SuccessMessage = string.Empty;
+
+            var tempPassword = "Reset@1234";
             var result = await _adminService.ResetPasswordAsync(SelectedUser.Id, tempPassword);
             if (result.Success)
             {
-                ErrorMessage = $"Password reset to {tempPassword}";
+                SuccessMessage = $"Password for {SelectedUser.Username} has been reset. Temporary password: {tempPassword}";
             }
             else
             {
@@ -112,10 +121,13 @@ namespace BoardRent.ViewModels
         private async Task UnlockAccountAsync()
         {
             if (SelectedUser == null) return;
+            ErrorMessage = string.Empty;
+            SuccessMessage = string.Empty;
+
             var result = await _adminService.UnlockAccountAsync(SelectedUser.Id);
             if (result.Success)
             {
-                ErrorMessage = "Account unlocked successfully.";
+                SuccessMessage = $"Account {SelectedUser.Username} has been unlocked.";
             }
             else
             {

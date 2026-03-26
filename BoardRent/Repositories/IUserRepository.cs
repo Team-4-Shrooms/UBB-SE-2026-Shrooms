@@ -13,5 +13,6 @@ namespace BoardRent.Repositories
         Task<List<User>> GetAllAsync(int page, int pageSize);
         Task AddAsync(User user);
         Task UpdateAsync(User user);
+        Task AssignRoleAsync(Guid userId, string roleName);
     }
 }

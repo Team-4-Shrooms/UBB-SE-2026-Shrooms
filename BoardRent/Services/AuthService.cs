@@ -47,8 +47,9 @@ namespace BoardRent.Services
             };
 
             await _userRepository.AddAsync(newUser);
+            await _userRepository.AssignRoleAsync(newUser.Id, "Standard User");
 
-            SessionContext.GetInstance().Populate(newUser, "User");
+            SessionContext.GetInstance().Populate(newUser, "Standard User");
 
             return ServiceResult<bool>.Ok(true);
         }
@@ -63,7 +64,15 @@ namespace BoardRent.Services
 
             if (user == null)
             {
-                return ServiceResult<UserProfileDto>.Fail("Invalid username or password.");
+                return ServiceResult<UserProfileDto>.Fail("Sign-in was unsuccessful. Please check your credentials and try again.");
+            }
+
+            var failedLogin = await _failedLoginRepository.GetByUserIdAsync(user.Id);
+            if (failedLogin != null && failedLogin.LockedUntil.HasValue && failedLogin.LockedUntil.Value > DateTime.UtcNow)
+            {
+                var remaining = failedLogin.LockedUntil.Value - DateTime.UtcNow;
+                int minutes = (int)Math.Ceiling(remaining.TotalMinutes);
+                return ServiceResult<UserProfileDto>.Fail($"Your account is locked due to too many failed sign-in attempts. Please try again in {minutes} minute{(minutes != 1 ? "s" : "")}.");
             }
 
             if (user.IsSuspended)
@@ -74,7 +83,7 @@ namespace BoardRent.Services
             if (!PasswordHasher.VerifyPassword(dto.Password, user.PasswordHash))
             {
                 await _failedLoginRepository.IncrementAsync(user.Id);
-                return ServiceResult<UserProfileDto>.Fail("Invalid username or password.");
+                return ServiceResult<UserProfileDto>.Fail("Sign-in was unsuccessful. Please check your credentials and try again.");
             }
 
             await _failedLoginRepository.ResetAsync(user.Id);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-    
+
 <Page
     x:Class="BoardRent.Views.ProfilePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,7 +19,7 @@
 
 
             <TabView
-                IsAddTabButtonVisible="False" >  
+                IsAddTabButtonVisible="False" >
                 <TabViewItem Header="Personal Info" IsSelected="True" IsClosable="False">
                     <ScrollViewer>
                         <StackPanel>
@@ -27,9 +27,9 @@
                                 <Border Width="100" Height="100" Background="#ccc">
                                     <Image Source="{Binding AvatarUrl}" Stretch="UniformToFill"/>
                                 </Border>
-                                <Button Content="Remove Picture" 
-                                        Background="Red" 
-                                        Foreground="White" 
+                                <Button Content="Remove Picture"
+                                        Background="Red"
+                                        Foreground="White"
                                         VerticalAlignment="Center"
                                         Command="{Binding RemoveAvatarCommand}"/>
                                 <Button Content="Upload Avatar"
@@ -57,8 +57,7 @@
 
                                 <TextBox Grid.Row="1" Grid.Column="0"
                                      Header="Email"
-                                     Text="{Binding Email}"
-                                     IsReadOnly="True"/>
+                                     Text="{Binding Email, Mode=TwoWay}"/>
 
                                 <TextBox Grid.Row="2" Grid.Column="0"
                                      Header="Display Name"
@@ -85,22 +84,24 @@
                                      Text="{Binding Country, Mode=TwoWay}"/>
 
                             </Grid>
+                            <TextBlock Text="{Binding ProfileMessage}" Foreground="Green" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding ProfileError}" Foreground="Red" TextWrapping="Wrap" Margin="0,5,0,0"/>
                             <Button Content="Save Changes"
                             Background="Green"
                             Foreground="White"
                             Command="{Binding SaveProfileCommand}" />
                         </StackPanel>
                     </ScrollViewer>
-                    
+
                 </TabViewItem>
                 <TabViewItem Header="Security" IsClosable="False">
                     <ScrollViewer>
                         <StackPanel>
-                            <TextBox 
+                            <PasswordBox
                                      Header="Current Password"
-                                     Text="{Binding CurrentPassword, Mode=TwoWay}"/>
+                                     Password="{Binding CurrentPassword, Mode=TwoWay}"/>
 
-                            <PasswordBox 
+                            <PasswordBox
                                      Header="New Password"
                                      Password="{Binding NewPassword, Mode=TwoWay}"/>
 
@@ -113,9 +114,9 @@
                                 Command="{Binding SaveNewPasswordCommand}" />
                             <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap"/>
                         </StackPanel>
-                        
+
                     </ScrollViewer>
-                    
+
                 </TabViewItem>
                 <TabViewItem Header="Booking History"  IsClosable="False"/>
                 <TabViewItem Header="My Listings"  IsClosable="False"/>

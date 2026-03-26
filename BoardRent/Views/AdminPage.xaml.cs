@@ -1,30 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 using System.ComponentModel;
 using BoardRent.ViewModels;
+using BoardRent.Services;
 using BoardRent.Utils;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 namespace BoardRent.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class AdminPage : Page, INotifyPropertyChanged
     {
         public AdminViewModel ViewModel { get; }
@@ -32,14 +15,15 @@ namespace BoardRent.Views
         public AdminPage()
         {
             InitializeComponent();
-            // TODO: Resolve proper DI once unblocked
-            ViewModel = new AdminViewModel(null);
+            var adminService = Ioc.Default.GetService<IAdminService>();
+            ViewModel = new AdminViewModel(adminService);
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
         public bool IsUnauthorized => !SessionContext.GetInstance().IsLoggedIn || SessionContext.GetInstance().Role != "Administrator";
         public Visibility IsAuthorizedVisibility => IsUnauthorized ? Visibility.Collapsed : Visibility.Visible;
         public bool IsErrorVisible => ViewModel != null && !string.IsNullOrEmpty(ViewModel.ErrorMessage);
+        public bool IsSuccessVisible => ViewModel != null && !string.IsNullOrEmpty(ViewModel.SuccessMessage);
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -49,12 +33,16 @@ namespace BoardRent.Views
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsErrorVisible)));
             }
+            if (e.PropertyName == nameof(AdminViewModel.SuccessMessage))
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSuccessVisible)));
+            }
         }
 
         private void OnSignOutClicked(object sender, RoutedEventArgs e)
         {
             SessionContext.GetInstance().Clear();
-            // App.NavigateTo(typeof(LoginPage));
+            App.NavigateToAndClearBackStack(typeof(LoginPage));
         }
     }
 }
