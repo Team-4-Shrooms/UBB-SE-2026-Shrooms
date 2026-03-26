@@ -153,6 +153,9 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
+                DisplayNameError = "";
+                PhoneError = "";
+                StreetNumberError = "";
                 Debug.WriteLine("Profile updated successfully");
             }
             else
