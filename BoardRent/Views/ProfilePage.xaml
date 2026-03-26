@@ -64,13 +64,15 @@
                                 <TextBox Grid.Row="0" Grid.Column="0"
                                          Header="Username"
                                          Text="{Binding Username}"
-                                         IsReadOnly="True"/>
+                                         IsReadOnly="True"
+                                         Margin="0,0,0,24"/>
 
                                 <TextBox Grid.Row="1" Grid.Column="0"
                                          Header="Email"
                                          Text="{Binding Email}"
                                          IsReadOnly="True"
-                                         Margin="0,0,0,24"/>
+                                         Margin="0,0,0,24"
+                                         />
                                 <StackPanel Grid.Row="2" Grid.Column="0">
                                     <TextBox
                                          Header="Display Name"
@@ -89,6 +91,7 @@
                                 <TextBox Grid.Row="0" Grid.Column="1" 
                                          Header="Street Name"
                                          Text="{Binding StreetName, Mode=TwoWay}"
+                                         Margin="0,0,0,24"
                                          />
                                 <StackPanel Grid.Row="1" Grid.Column="1">
                                     <TextBox
