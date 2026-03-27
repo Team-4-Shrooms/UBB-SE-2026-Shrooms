@@ -10,6 +10,7 @@ using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.UI.Xaml;
 using WinRT.Interop;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -44,6 +45,9 @@ namespace BoardRent.ViewModels
             SignOutCommand= new RelayCommand(async () => await SignOut());
             //LoadProfile();
         }
+
+        public Visibility AdminButtonVisibility =>
+            SessionContext.GetInstance().Role == "Administrator" ? Visibility.Visible : Visibility.Collapsed;
 
         public ObservableCollection<string> Countries { get; } = new ObservableCollection<string>{
             "Romania",
@@ -97,6 +101,9 @@ namespace BoardRent.ViewModels
 
         private string _confirmPassword;
         public string ConfirmPassword { get => _confirmPassword; set => SetProperty(ref _confirmPassword, value); }
+
+        private string _emailError;
+        public string EmailError { get => _emailError; set => SetProperty(ref _emailError, value); }
 
         private string _error;
         public string ErrorMessage { get => _error; set => SetProperty(ref _error, value); }
@@ -156,10 +163,26 @@ namespace BoardRent.ViewModels
                 DisplayNameError = "";
                 PhoneError = "";
                 StreetNumberError = "";
+                EmailError = "";
+
+                var session = SessionContext.GetInstance();
+                var user = new Domain.User
+                {
+                    Id = session.UserId,
+                    Username = Username,
+                    DisplayName = DisplayName
+                };
+                session.Populate(user, session.Role);
+
                 Debug.WriteLine("Profile updated successfully");
             }
             else
             {
+                DisplayNameError = "";
+                PhoneError = "";
+                StreetNumberError = "";
+                EmailError = "";
+
                 var fieldErrors = result.Error.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var fe in fieldErrors)
@@ -179,6 +202,9 @@ namespace BoardRent.ViewModels
                             break;
                         case "StreetNumber":
                             StreetNumberError = message;
+                            break;
+                        case "Email":
+                            EmailError = message;
                             break;
                     }
                 }
@@ -221,8 +247,7 @@ namespace BoardRent.ViewModels
         public async Task SignOut()
         {
             await _authService.LogoutAsync();
-            App.NavigateTo(typeof(LoginPage));
-
+            App.NavigateTo(typeof(LoginPage), clearBackStack: true);
         }
 
         public async Task SaveNewPassword()
@@ -241,7 +266,7 @@ namespace BoardRent.ViewModels
             if (result.Success)
             {
                 CurrentPassword = NewPassword = ConfirmPassword = "";
-                App.NavigateTo(typeof(LoginPage));
+                App.NavigateTo(typeof(LoginPage), clearBackStack: true);
             }
             else
             {

@@ -1,4 +1,4 @@
-﻿using BoardRent.DTOs;
+using BoardRent.DTOs;
 using BoardRent.Services;
 using BoardRent.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -49,7 +49,14 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
-                App.NavigateTo(typeof(ProfilePage));
+                if (result.Data.Role?.Name == "Administrator")
+                {
+                    App.NavigateTo(typeof(AdminPage), clearBackStack: true);
+                }
+                else
+                {
+                    App.NavigateTo(typeof(ProfilePage), clearBackStack: true);
+                }
             }
             else
             {
@@ -62,7 +69,7 @@ namespace BoardRent.ViewModels
         [RelayCommand]
         private void NavigateToRegister()
         {
-            App.NavigateTo(typeof(Views.RegisterPage));
+            App.NavigateTo(typeof(RegisterPage));
         }
     }
 }

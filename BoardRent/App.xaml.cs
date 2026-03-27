@@ -23,15 +23,20 @@ namespace BoardRent
             Ioc.Default.ConfigureServices(
                 new ServiceCollection()
 
-                .AddTransient<AppDbContext>()
-
-                .AddTransient<LoginViewModel>()
-                .AddTransient<RegisterViewModel>()
-
-                .AddSingleton<IAuthService, AuthService>()
+                .AddSingleton<AppDbContext>()
+                .AddSingleton<IUnitOfWorkFactory, UnitOfWorkFactory>()
 
                 .AddSingleton<IUserRepository, UserRepository>()
                 .AddSingleton<IFailedLoginRepository, FailedLoginRepository>()
+
+                .AddSingleton<IAuthService, AuthService>()
+                .AddSingleton<IUserService, UserService>()
+                .AddSingleton<IAdminService, AdminService>()
+
+                .AddTransient<LoginViewModel>()
+                .AddTransient<RegisterViewModel>()
+                .AddTransient<ProfileViewModel>()
+                .AddTransient<AdminViewModel>()
 
                 .BuildServiceProvider()
             );
@@ -50,9 +55,13 @@ namespace BoardRent
             NavigateTo(typeof(LoginPage));
         }
 
-        public static void NavigateTo(Type pageType)
+        public static void NavigateTo(Type pageType, bool clearBackStack = false)
         {
             _rootFrame?.Navigate(pageType);
+            if (clearBackStack && _rootFrame != null)
+            {
+                _rootFrame.BackStack.Clear();
+            }
         }
 
         public static void NavigateBack()

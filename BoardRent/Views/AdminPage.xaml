@@ -56,14 +56,20 @@
                 <controls:DataGridTextColumn Header="Username" Binding="{Binding Username}" />
                 <controls:DataGridTextColumn Header="Email" Binding="{Binding Email}" />
                 
-                <!-- Status Badge -->
+                <!-- Status Column -->
                 <controls:DataGridTemplateColumn Header="Status">
                     <controls:DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Border Background="{Binding IsSuspended, Converter={StaticResource StatusColorConverter}}" 
-                                    CornerRadius="4" Padding="4,2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding IsSuspended, Converter={StaticResource StatusTextConverter}}" Foreground="White" FontSize="12"/>
-                            </Border>
+                            <TextBlock Text="{Binding IsSuspended}" FontSize="12" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                    </controls:DataGridTemplateColumn.CellTemplate>
+                </controls:DataGridTemplateColumn>
+
+                <!-- Locked Column -->
+                <controls:DataGridTemplateColumn Header="Locked">
+                    <controls:DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding IsLocked}" FontSize="12" VerticalAlignment="Center"/>
                         </DataTemplate>
                     </controls:DataGridTemplateColumn.CellTemplate>
                 </controls:DataGridTemplateColumn>
@@ -77,7 +83,7 @@
             <!-- We could map Converters, but here is a simple Actions bar per prompt -->
             <Button Content="Suspend User" Command="{x:Bind ViewModel.SuspendUserCommand}" />
             <Button Content="Unsuspend User" Command="{x:Bind ViewModel.UnsuspendUserCommand}" />
-            <Button Content="Reset Pass" Command="{x:Bind ViewModel.ResetPasswordCommand}" />
+            <Button Content="Reset Pass" Click="OnResetPasswordClicked" />
             <Button Content="Unlock" Command="{x:Bind ViewModel.UnlockAccountCommand}" />
         </StackPanel>
 

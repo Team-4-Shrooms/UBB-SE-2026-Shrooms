@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BoardRent.Data;
 using BoardRent.Domain;
 using BoardRent.DTOs;
 using BoardRent.Repositories;
@@ -13,11 +14,13 @@ namespace BoardRent.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IFailedLoginRepository _failedLoginRepository;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public AdminService(IUserRepository userRepository, IFailedLoginRepository failedLoginRepository)
+        public AdminService(IUserRepository userRepository, IFailedLoginRepository failedLoginRepository, IUnitOfWorkFactory unitOfWorkFactory)
         {
             _userRepository = userRepository;
             _failedLoginRepository = failedLoginRepository;
+            _unitOfWorkFactory = unitOfWorkFactory;
         }
 
         private bool IsAuthorized()
@@ -31,25 +34,47 @@ namespace BoardRent.Services
             if (!IsAuthorized())
                 return ServiceResult<List<UserProfileDto>>.Fail("Unauthorized access.");
 
-            var users = await _userRepository.GetAllAsync(page, pageSize);
-            
-            var dtos = users.Select(u => new UserProfileDto
+            using (var uow = _unitOfWorkFactory.Create())
             {
-                Id = u.Id,
-                Username = u.Username,
-                DisplayName = u.DisplayName,
-                Email = u.Email,
-                PhoneNumber = u.PhoneNumber,
-                AvatarUrl = u.AvatarUrl,
-                Role = u.Roles?.FirstOrDefault()?.Name ?? "User",
-                IsSuspended = u.IsSuspended,
-                Country = u.Country,
-                City = u.City,
-                StreetName = u.StreetName,
-                StreetNumber = u.StreetNumber
-            }).ToList();
+                await uow.OpenAsync();
+                ((UserRepository)_userRepository).SetUnitOfWork(uow);
+                ((FailedLoginRepository)_failedLoginRepository).SetUnitOfWork(uow);
 
-            return ServiceResult<List<UserProfileDto>>.Ok(dtos);
+                var users = await _userRepository.GetAllAsync(page, pageSize);
+
+                var dtos = new List<UserProfileDto>();
+                foreach (var u in users)
+                {
+                    var firstRole = u.Roles?.FirstOrDefault();
+                    var failedAttempt = await _failedLoginRepository.GetByUserIdAsync(u.Id);
+                    bool isLocked = failedAttempt != null
+                        && failedAttempt.LockedUntil.HasValue
+                        && failedAttempt.LockedUntil.Value > DateTime.UtcNow;
+
+                    dtos.Add(new UserProfileDto
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        DisplayName = u.DisplayName,
+                        Email = u.Email,
+                        PhoneNumber = u.PhoneNumber,
+                        AvatarUrl = u.AvatarUrl,
+                        Role = new RoleDto
+                        {
+                            Id = firstRole?.Id ?? Guid.Empty,
+                            Name = firstRole?.Name ?? "Standard User"
+                        },
+                        IsSuspended = u.IsSuspended,
+                        IsLocked = isLocked,
+                        Country = u.Country,
+                        City = u.City,
+                        StreetName = u.StreetName,
+                        StreetNumber = u.StreetNumber
+                    });
+                }
+
+                return ServiceResult<List<UserProfileDto>>.Ok(dtos);
+            }
         }
 
         public async Task<ServiceResult<bool>> SuspendUserAsync(Guid userId)
@@ -57,14 +82,20 @@ namespace BoardRent.Services
             if (!IsAuthorized())
                 return ServiceResult<bool>.Fail("Unauthorized access.");
 
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                return ServiceResult<bool>.Fail("User not found.");
+            using (var uow = _unitOfWorkFactory.Create())
+            {
+                await uow.OpenAsync();
+                ((UserRepository)_userRepository).SetUnitOfWork(uow);
 
-            user.IsSuspended = true;
-            await _userRepository.UpdateAsync(user);
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return ServiceResult<bool>.Fail("User not found.");
 
-            return ServiceResult<bool>.Ok(true);
+                user.IsSuspended = true;
+                await _userRepository.UpdateAsync(user);
+
+                return ServiceResult<bool>.Ok(true);
+            }
         }
 
         public async Task<ServiceResult<bool>> UnsuspendUserAsync(Guid userId)
@@ -72,14 +103,20 @@ namespace BoardRent.Services
             if (!IsAuthorized())
                 return ServiceResult<bool>.Fail("Unauthorized access.");
 
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                return ServiceResult<bool>.Fail("User not found.");
+            using (var uow = _unitOfWorkFactory.Create())
+            {
+                await uow.OpenAsync();
+                ((UserRepository)_userRepository).SetUnitOfWork(uow);
 
-            user.IsSuspended = false;
-            await _userRepository.UpdateAsync(user);
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return ServiceResult<bool>.Fail("User not found.");
 
-            return ServiceResult<bool>.Ok(true);
+                user.IsSuspended = false;
+                await _userRepository.UpdateAsync(user);
+
+                return ServiceResult<bool>.Ok(true);
+            }
         }
 
         public async Task<ServiceResult<bool>> ResetPasswordAsync(Guid userId, string newPassword)
@@ -90,14 +127,20 @@ namespace BoardRent.Services
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
                 return ServiceResult<bool>.Fail("Password must be at least 6 characters long.");
 
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                return ServiceResult<bool>.Fail("User not found.");
+            using (var uow = _unitOfWorkFactory.Create())
+            {
+                await uow.OpenAsync();
+                ((UserRepository)_userRepository).SetUnitOfWork(uow);
 
-            user.PasswordHash = PasswordHasher.HashPassword(newPassword);
-            await _userRepository.UpdateAsync(user);
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return ServiceResult<bool>.Fail("User not found.");
 
-            return ServiceResult<bool>.Ok(true);
+                user.PasswordHash = PasswordHasher.HashPassword(newPassword);
+                await _userRepository.UpdateAsync(user);
+
+                return ServiceResult<bool>.Ok(true);
+            }
         }
 
         public async Task<ServiceResult<bool>> UnlockAccountAsync(Guid userId)
@@ -105,9 +148,15 @@ namespace BoardRent.Services
             if (!IsAuthorized())
                 return ServiceResult<bool>.Fail("Unauthorized access.");
 
-            await _failedLoginRepository.ResetAsync(userId);
+            using (var uow = _unitOfWorkFactory.Create())
+            {
+                await uow.OpenAsync();
+                ((FailedLoginRepository)_failedLoginRepository).SetUnitOfWork(uow);
 
-            return ServiceResult<bool>.Ok(true);
+                await _failedLoginRepository.ResetAsync(userId);
+
+                return ServiceResult<bool>.Ok(true);
+            }
         }
     }
 }

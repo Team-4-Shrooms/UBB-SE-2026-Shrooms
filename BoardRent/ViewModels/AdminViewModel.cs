@@ -94,13 +94,17 @@ namespace BoardRent.ViewModels
         [RelayCommand(CanExecute = nameof(CanModifySelectedUser))]
         private async Task ResetPasswordAsync()
         {
+            // This is kept as a no-op; the actual reset is done via ResetPasswordWithValueAsync
+            // triggered from the code-behind dialog.
+        }
+
+        public async Task ResetPasswordWithValueAsync(string newPassword)
+        {
             if (SelectedUser == null) return;
-            // Generate or prompt for a password. Using a default secure one for this example.
-            var tempPassword = "NewPassword123!"; 
-            var result = await _adminService.ResetPasswordAsync(SelectedUser.Id, tempPassword);
+            var result = await _adminService.ResetPasswordAsync(SelectedUser.Id, newPassword);
             if (result.Success)
             {
-                ErrorMessage = $"Password reset to {tempPassword}";
+                ErrorMessage = "Password has been reset successfully.";
             }
             else
             {

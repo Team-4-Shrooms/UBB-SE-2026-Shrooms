@@ -16,7 +16,12 @@
         <StackPanel HorizontalAlignment="Center"  Spacing="15">
 
             <Grid Background="#555" Height="50">
-                <TextBlock Text="My profile" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0" Spacing="15">
+                    <TextBlock Text="My profile" Foreground="White" VerticalAlignment="Center"/>
+                    <Button Content="Admin Panel" Background="#FF8C00" Foreground="White"
+                            Visibility="{Binding AdminButtonVisibility}"
+                            Click="AdminPanel_Click"/>
+                </StackPanel>
                 <Button Content="Sign out" Background="Red" Foreground="White" HorizontalAlignment="Right" Margin="0,5,10,5" Command="{Binding SignOutCommand}"/>
             </Grid>
             
@@ -33,8 +38,11 @@
                         <StackPanel Spacing="15">
 
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Border Width="100" Height="100" Background="#ccc">
-                                    <Image Source="{Binding AvatarUrl}" Stretch="UniformToFill"/>
+                                <Border Width="100" Height="100" Background="#ccc" CornerRadius="50">
+                                    <Grid>
+                                        <FontIcon Glyph="&#xE77B;" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#888"/>
+                                        <Image Source="{Binding AvatarUrl}" Stretch="UniformToFill"/>
+                                    </Grid>
                                 </Border>
                                 <StackPanel Spacing="10">
                                     <Button Content="Remove Picture"
@@ -67,12 +75,11 @@
                                          IsReadOnly="True"
                                          Margin="0,0,0,24"/>
 
-                                <TextBox Grid.Row="1" Grid.Column="0"
-                                         Header="Email"
-                                         Text="{Binding Email}"
-                                         IsReadOnly="True"
-                                         Margin="0,0,0,24"
-                                         />
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,4">
+                                    <TextBox Header="Email"
+                                             Text="{Binding Email, Mode=TwoWay}"/>
+                                    <TextBlock Text="{Binding EmailError}" Foreground="Red" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="0">
                                     <TextBox
                                          Header="Display Name"

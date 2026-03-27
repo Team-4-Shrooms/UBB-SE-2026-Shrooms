@@ -1,7 +1,9 @@
-﻿using BoardRent.DTOs;
+using BoardRent.DTOs;
 using BoardRent.Services;
+using BoardRent.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Threading.Tasks;
 
 namespace BoardRent.ViewModels
@@ -21,31 +23,64 @@ namespace BoardRent.ViewModels
         [ObservableProperty] private string streetName = string.Empty;
         [ObservableProperty] private string streetNumber = string.Empty;
 
+        [ObservableProperty] private string displayNameError = string.Empty;
+        [ObservableProperty] private string usernameError = string.Empty;
+        [ObservableProperty] private string emailError = string.Empty;
+        [ObservableProperty] private string passwordError = string.Empty;
+        [ObservableProperty] private string confirmPasswordError = string.Empty;
+        [ObservableProperty] private string phoneNumberError = string.Empty;
+
         public RegisterViewModel(IAuthService authService)
         {
             _authService = authService;
         }
 
+        private void ClearErrors()
+        {
+            DisplayNameError = string.Empty;
+            UsernameError = string.Empty;
+            EmailError = string.Empty;
+            PasswordError = string.Empty;
+            ConfirmPasswordError = string.Empty;
+            PhoneNumberError = string.Empty;
+            ErrorMessage = string.Empty;
+        }
+
         [RelayCommand]
         private async Task RegisterAsync()
         {
-            ErrorMessage = string.Empty;
+            ClearErrors();
 
-            if (string.IsNullOrWhiteSpace(DisplayName) || string.IsNullOrWhiteSpace(Username) ||
-                string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password) ||
-                string.IsNullOrWhiteSpace(PhoneNumber) || string.IsNullOrWhiteSpace(Country) ||
-                string.IsNullOrWhiteSpace(City) || string.IsNullOrWhiteSpace(StreetName) ||
-                string.IsNullOrWhiteSpace(StreetNumber))
+            bool hasClientError = false;
+
+            if (string.IsNullOrWhiteSpace(DisplayName))
             {
-                ErrorMessage = "Please fill in all the fields.";
-                return;
+                DisplayNameError = "Display name is required.";
+                hasClientError = true;
+            }
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                UsernameError = "Username is required.";
+                hasClientError = true;
+            }
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                EmailError = "Email is required.";
+                hasClientError = true;
+            }
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                PasswordError = "Password is required.";
+                hasClientError = true;
+            }
+            if (string.IsNullOrWhiteSpace(ConfirmPassword))
+            {
+                ConfirmPasswordError = "Please confirm your password.";
+                hasClientError = true;
             }
 
-            if (Password != ConfirmPassword)
-            {
-                ErrorMessage = "Passwords do not match!";
+            if (hasClientError)
                 return;
-            }
 
             IsLoading = true;
 
@@ -67,11 +102,32 @@ namespace BoardRent.ViewModels
 
             if (result.Success)
             {
-                App.NavigateBack();
+                App.NavigateTo(typeof(ProfilePage), clearBackStack: true);
             }
             else
             {
-                ErrorMessage = result.Error ?? "Registration failed.";
+                var fieldErrors = result.Error.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var fe in fieldErrors)
+                {
+                    var parts = fe.Split('|', 2);
+                    if (parts.Length == 2)
+                    {
+                        switch (parts[0])
+                        {
+                            case "DisplayName": DisplayNameError = parts[1]; break;
+                            case "Username": UsernameError = parts[1]; break;
+                            case "Email": EmailError = parts[1]; break;
+                            case "Password": PasswordError = parts[1]; break;
+                            case "ConfirmPassword": ConfirmPasswordError = parts[1]; break;
+                            case "PhoneNumber": PhoneNumberError = parts[1]; break;
+                            default: ErrorMessage = parts[1]; break;
+                        }
+                    }
+                    else
+                    {
+                        ErrorMessage = fe;
+                    }
+                }
             }
 
             IsLoading = false;

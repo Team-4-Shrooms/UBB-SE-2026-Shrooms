@@ -8,109 +8,63 @@ namespace BoardRent.Repositories
 {
     public class FailedLoginRepository : IFailedLoginRepository
     {
-        private readonly AppDbContext _dbContext;
+        private IUnitOfWork _unitOfWork;
 
-        public FailedLoginRepository(AppDbContext dbContext)
+        public void SetUnitOfWork(IUnitOfWork unitOfWork)
         {
-            _dbContext = dbContext;
+            _unitOfWork = unitOfWork;
         }
+
+        private SqlConnection Connection => _unitOfWork.Connection;
 
         public async Task<FailedLoginAttempt?> GetByUserIdAsync(Guid userId)
         {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
-
-            using var command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM FailedLoginAttempt WHERE UserId = @UserId";
-            command.Parameters.AddWithValue("@UserId", userId);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (reader.Read())
+            using (var command = Connection.CreateCommand())
             {
-                return MapFailedLoginAttempt(reader);
+                command.CommandText = "SELECT * FROM FailedLoginAttempt WHERE UserId = @UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        return MapFailedLoginAttempt(reader);
+                    }
+                }
             }
 
             return null;
         }
 
-        private async Task CreateAsync(FailedLoginAttempt attempt)
-        {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
-
-            using var command = connection.CreateCommand();
-            command.CommandText = @"
-                INSERT INTO FailedLoginAttempt (UserId, FailedAttempts, LockedUntil)
-                VALUES (@UserId, @FailedAttempts, @LockedUntil)";
-
-            command.Parameters.AddWithValue("@UserId", attempt.UserId);
-            command.Parameters.AddWithValue("@FailedAttempts", attempt.FailedAttempts);
-            command.Parameters.AddWithValue("@LockedUntil", attempt.LockedUntil ?? (object)DBNull.Value);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
-        private async Task UpdateAsync(FailedLoginAttempt attempt)
-        {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
-
-            using var command = connection.CreateCommand();
-            command.CommandText = @"
-                UPDATE FailedLoginAttempt 
-                SET FailedAttempts = @FailedAttempts, LockedUntil = @LockedUntil
-                WHERE UserId = @UserId";
-
-            command.Parameters.AddWithValue("@UserId", attempt.UserId);
-            command.Parameters.AddWithValue("@FailedAttempts", attempt.FailedAttempts);
-            command.Parameters.AddWithValue("@LockedUntil", attempt.LockedUntil ?? (object)DBNull.Value);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
-        private async Task DeleteAsync(Guid userId)
-        {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
-
-            using var command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM FailedLoginAttempt WHERE UserId = @UserId";
-            command.Parameters.AddWithValue("@UserId", userId);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
         public async Task IncrementAsync(Guid userId)
         {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
+            using (var command = Connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    IF EXISTS (SELECT 1 FROM FailedLoginAttempt WHERE UserId = @UserId)
+                        UPDATE FailedLoginAttempt SET FailedAttempts = FailedAttempts + 1, LockedUntil = CASE WHEN FailedAttempts + 1 >= 5 THEN DATEADD(minute, 15, GETUTCDATE()) ELSE NULL END WHERE UserId = @UserId
+                    ELSE
+                        INSERT INTO FailedLoginAttempt (UserId, FailedAttempts, LockedUntil) VALUES (@UserId, 1, NULL)";
 
-            using var command = connection.CreateCommand();
-            command.CommandText = @"
-                IF EXISTS (SELECT 1 FROM FailedLoginAttempt WHERE UserId = @UserId)
-                    UPDATE FailedLoginAttempt SET FailedAttempts = FailedAttempts + 1, LockedUntil = CASE WHEN FailedAttempts + 1 >= 5 THEN DATEADD(minute, 15, GETUTCDATE()) ELSE NULL END WHERE UserId = @UserId
-                ELSE
-                    INSERT INTO FailedLoginAttempt (UserId, FailedAttempts, LockedUntil) VALUES (@UserId, 1, NULL)";
+                command.Parameters.AddWithValue("@UserId", userId);
 
-            command.Parameters.AddWithValue("@UserId", userId);
-
-            await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         public async Task ResetAsync(Guid userId)
         {
-            using var connection = _dbContext.CreateConnection();
-            connection.Open();
+            using (var command = Connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    UPDATE FailedLoginAttempt
+                    SET FailedAttempts = 0, LockedUntil = NULL
+                    WHERE UserId = @UserId";
 
-            using var command = connection.CreateCommand();
-            command.CommandText = @"
-                UPDATE FailedLoginAttempt 
-                SET FailedAttempts = 0, LockedUntil = NULL
-                WHERE UserId = @UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
 
-            command.Parameters.AddWithValue("@UserId", userId);
-
-            await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         private FailedLoginAttempt MapFailedLoginAttempt(SqlDataReader reader)

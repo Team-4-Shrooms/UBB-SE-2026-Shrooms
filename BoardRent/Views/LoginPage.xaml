@@ -43,10 +43,10 @@
         </StackPanel>
 
         <ContentDialog x:Name="ResetPasswordDialog"
-                       Title="Password reset instructions"
+                       Title="Password Reset"
                        CloseButtonText="Close"
                        DefaultButton="Close">
-            <TextBlock Text="Please send an email to our support team at examplesupport@example.com with your username and Issue" TextWrapping="Wrap"/>
+            <TextBlock Text="Please contact the Administrator at admin@boardrent.com to reset your password." TextWrapping="Wrap"/>
         </ContentDialog>
     </Grid>
 </Page>
