@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Repositories;
@@ -8,8 +9,8 @@ namespace MovieShop.Views
 {
     public sealed partial class InventoryView : Page
     {
-        private readonly InventoryRepo _repo = new InventoryRepo();
-        private readonly UserRepo _userRepo = new UserRepo();
+        private readonly IInventoryRepository _repo = App.Services.GetRequiredService<IInventoryRepository>();
+        private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
 
         public InventoryView()
         {

@@ -3,7 +3,7 @@ using System;
 
 namespace MovieShop.Repositories
 {
-    public class UserRepo
+    public class UserRepo : IUserRepository
     {
         private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
 

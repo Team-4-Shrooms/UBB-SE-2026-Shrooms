@@ -5,13 +5,7 @@ namespace MovieShop.Views
 {
     public sealed partial class WalletView : Page
     {
-        public WalletViewModel ViewModel { get; } = new WalletViewModel(1, 500.00m);
-
-        public WalletView()
-        {
-            this.InitializeComponent();
-            _ = ViewModel.LoadTransactionsAsync();
-        }
+        public WalletViewModel ViewModel { get; }
 
         public WalletView(WalletViewModel viewModel)
         {

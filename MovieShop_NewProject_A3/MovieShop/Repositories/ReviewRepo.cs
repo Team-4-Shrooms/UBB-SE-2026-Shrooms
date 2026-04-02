@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MovieShop.Repositories
 {
-    public sealed class ReviewRepo
+    public sealed class ReviewRepo : IReviewRepository
     {
         private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
 

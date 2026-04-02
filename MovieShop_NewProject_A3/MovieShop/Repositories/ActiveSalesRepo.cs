@@ -6,7 +6,7 @@ using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
-    public class ActiveSalesRepo
+    public class ActiveSalesRepo : IActiveSalesRepository
     {
         DatabaseSingleton _db = DatabaseSingleton.Instance;
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
@@ -8,7 +9,7 @@ namespace MovieShop.Views
 {
     public sealed partial class MarketplacePage : Page
     {
-        public MarketplaceViewModel ViewModel { get; } = new MarketplaceViewModel();
+        public MarketplaceViewModel ViewModel { get; } = App.Services.GetRequiredService<MarketplaceViewModel>();
 
         public MarketplacePage()
         {

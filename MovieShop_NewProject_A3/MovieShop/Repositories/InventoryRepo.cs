@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MovieShop.Repositories
 {
-    public class InventoryRepo
+    public class InventoryRepo : IInventoryRepository
     {
         private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
 

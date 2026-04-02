@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Models;
@@ -10,6 +11,8 @@ namespace MovieShop.Views
     public sealed partial class BuyTicketPage : Page
     {
         private MovieEvent? _event;
+        private readonly IEventRepository _eventRepo = App.Services.GetRequiredService<IEventRepository>();
+        private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
 
         public BuyTicketPage()
         {
@@ -22,7 +25,7 @@ namespace MovieShop.Views
 
             if (e.Parameter is int id)
             {
-                _event = new EventRepo().GetEventById(id);
+                _event = _eventRepo.GetEventById(id);
             }
             else if (e.Parameter is MovieEvent me)
             {
@@ -46,7 +49,7 @@ namespace MovieShop.Views
             {
                 try
                 {
-                    balance = new UserRepo().GetBalance(Models.SessionManager.CurrentUserID);
+                    balance = _userRepo.GetBalance(Models.SessionManager.CurrentUserID);
                     Models.SessionManager.CurrentUserBalance = balance;
                 }
                 catch
@@ -100,7 +103,7 @@ namespace MovieShop.Views
                     return;
 
                 Models.SessionManager.CurrentUserID = 1;
-                Models.SessionManager.CurrentUserBalance = new Repositories.UserRepo().GetBalance(1);
+                Models.SessionManager.CurrentUserBalance = _userRepo.GetBalance(1);
                 UpdateButtonState();
                 return;
             }
@@ -108,9 +111,9 @@ namespace MovieShop.Views
             try
             {
                 // Run the DB work on a background thread to avoid blocking the UI thread
-                await System.Threading.Tasks.Task.Run(() => new EventRepo().PurchaseTicket(Models.SessionManager.CurrentUserID, _event.ID));
+                await System.Threading.Tasks.Task.Run(() => _eventRepo.PurchaseTicket(Models.SessionManager.CurrentUserID, _event.ID));
 
-                Models.SessionManager.CurrentUserBalance = new Repositories.UserRepo().GetBalance(Models.SessionManager.CurrentUserID);
+                Models.SessionManager.CurrentUserBalance = _userRepo.GetBalance(Models.SessionManager.CurrentUserID);
                 UpdateButtonState();
 
                 var dialog = new ContentDialog

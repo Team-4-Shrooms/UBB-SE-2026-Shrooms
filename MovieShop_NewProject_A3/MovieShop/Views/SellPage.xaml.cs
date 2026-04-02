@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
@@ -12,7 +13,7 @@ namespace MovieShop.Views
 {
     public sealed partial class SellPage : Page
     {
-        private readonly EquipmentRepo _repo = new EquipmentRepo();
+        private readonly IEquipmentRepository _repo = App.Services.GetRequiredService<IEquipmentRepository>();
         public SellEquipmentViewModel ViewModel { get; set; } = new SellEquipmentViewModel();
         private string _selectedLocalPath = string.Empty;
 

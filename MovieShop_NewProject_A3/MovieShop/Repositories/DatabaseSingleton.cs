@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MovieShop.Repositories
 {
-    public sealed class DatabaseSingleton
+    public sealed class DatabaseSingleton : IDatabaseSingleton
     {
         private static DatabaseSingleton? _instance;
         private readonly SqlConnection _connection;

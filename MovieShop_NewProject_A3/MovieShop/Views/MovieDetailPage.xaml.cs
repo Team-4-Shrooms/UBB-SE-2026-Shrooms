@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -20,7 +21,9 @@ public sealed partial class MovieDetailPage : Page
 {
     private Movie? _movie;
     private MainViewModel? _mainVm;
-    private readonly MovieRepo _movieRepo = new();
+    private readonly IMovieRepository _movieRepo = App.Services.GetRequiredService<IMovieRepository>();
+    private readonly IActiveSalesRepository _activeSalesRepo = App.Services.GetRequiredService<IActiveSalesRepository>();
+    private readonly IDatabaseSingleton _db = App.Services.GetRequiredService<IDatabaseSingleton>();
 
     public MovieDetailPage()
     {
@@ -40,7 +43,7 @@ public sealed partial class MovieDetailPage : Page
         if (_movie == null)
             return;
 
-        var discountMap = new ActiveSalesRepo().GetBestDiscountPercentByMovieId();
+        var discountMap = _activeSalesRepo.GetBestDiscountPercentByMovieId();
         ActiveSalesRepo.ApplyBestDiscountsToMovies(new List<Movie> { _movie }, discountMap);
 
         TitleBlock.Text = _movie.Title;
@@ -234,15 +237,14 @@ public sealed partial class MovieDetailPage : Page
         }
     }
 
-    private static int GetReviewCount(int movieId)
+    private int GetReviewCount(int movieId)
     {
-        var db = DatabaseSingleton.Instance;
-        db.OpenConnection();
+        _db.OpenConnection();
 
         try
         {
             const string query = @"SELECT StarRating FROM Reviews WHERE MovieID = @mid";
-            using var cmd = new SqlCommand(query, db.Connection);
+            using var cmd = new SqlCommand(query, _db.Connection);
             cmd.Parameters.AddWithValue("@mid", movieId);
 
             using var reader = cmd.ExecuteReader();
@@ -254,20 +256,19 @@ public sealed partial class MovieDetailPage : Page
         }
         finally
         {
-            db.CloseConnection();
+            _db.CloseConnection();
         }
     }
 
-    private static string BuildStarDistributionTooltip(int movieId)
+    private string BuildStarDistributionTooltip(int movieId)
     {
         var counts = new int[11];
 
-        var db = DatabaseSingleton.Instance;
-        db.OpenConnection();
+        _db.OpenConnection();
         try
         {
             const string query = @"SELECT StarRating FROM Reviews WHERE MovieID = @mid";
-            using var cmd = new SqlCommand(query, db.Connection);
+            using var cmd = new SqlCommand(query, _db.Connection);
             cmd.Parameters.AddWithValue("@mid", movieId);
 
             using var reader = cmd.ExecuteReader();
@@ -282,7 +283,7 @@ public sealed partial class MovieDetailPage : Page
         }
         finally
         {
-            db.CloseConnection();
+            _db.CloseConnection();
         }
 
         var total = 0;

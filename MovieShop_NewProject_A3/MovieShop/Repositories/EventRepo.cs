@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MovieShop.Repositories
 {
-    public sealed class EventRepo
+    public sealed class EventRepo : IEventRepository
     {
         private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
 

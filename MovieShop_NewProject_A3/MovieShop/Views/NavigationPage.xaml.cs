@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.ViewModels;
 using MovieShop.Models;
@@ -6,7 +7,7 @@ namespace MovieShop.Views
 {
     public sealed partial class NavigationPage : Page
     {
-        public MainViewModel ViewModel { get; } = new MainViewModel();
+        public MainViewModel ViewModel { get; } = App.Services.GetRequiredService<MainViewModel>();
 
         public NavigationPage()
         {
