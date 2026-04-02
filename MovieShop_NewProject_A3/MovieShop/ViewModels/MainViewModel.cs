@@ -23,7 +23,7 @@ namespace MovieShop.ViewModels
         }
 
         public FlashSaleViewModel FlashSaleVM { get; set; }
-        private readonly ActiveSalesRepo _salesRepo = new ActiveSalesRepo();
+        private readonly IActiveSalesRepository _salesRepo;
 
         // --- Balance ---
         private decimal _balance;
@@ -41,7 +41,8 @@ namespace MovieShop.ViewModels
         public string DisplayBalance => Balance.ToString("C");
 
         private readonly int _currentUserID = SessionManager.CurrentUserID;
-        private readonly UserRepo _userRepo = new UserRepo();
+        private readonly IUserRepository _userRepo;
+        private readonly ITransactionRepository _transactionRepo;
 
         private WalletViewModel _walletViewModel;
         private MovieViewModel _shopViewModel;
@@ -52,8 +53,11 @@ namespace MovieShop.ViewModels
         public IRelayCommand NavigateToTicketsCommand { get; }
         public IRelayCommand NavigateToInventoryCommand { get; }
 
-        public MainViewModel()
+        public MainViewModel(IUserRepository userRepo, IActiveSalesRepository salesRepo, ITransactionRepository transactionRepo)
         {
+            _userRepo = userRepo;
+            _salesRepo = salesRepo;
+            _transactionRepo = transactionRepo;
             if (_currentUserID > 0)
                 Balance = _userRepo.GetBalance(_currentUserID);
             else
@@ -74,7 +78,7 @@ namespace MovieShop.ViewModels
             MovieShop.Services.SaleService.CurrentSale = this.FlashSaleVM;
 
 
-            _walletViewModel = new WalletViewModel(_currentUserID, Balance);
+            _walletViewModel = new WalletViewModel(_currentUserID, Balance, _userRepo, _transactionRepo);
             _walletViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(WalletViewModel.Balance))

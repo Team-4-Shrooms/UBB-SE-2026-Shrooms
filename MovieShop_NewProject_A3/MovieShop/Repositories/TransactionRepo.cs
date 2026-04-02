@@ -9,7 +9,7 @@ using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
-    internal class TransactionRepo
+    public class TransactionRepo : ITransactionRepository
     {
         DatabaseSingleton _db = DatabaseSingleton.Instance;
 

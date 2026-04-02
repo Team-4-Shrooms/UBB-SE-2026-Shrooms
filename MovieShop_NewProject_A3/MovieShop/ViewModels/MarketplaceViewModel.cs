@@ -10,7 +10,7 @@ namespace MovieShop.ViewModels
 {
     public class MarketplaceViewModel : INotifyPropertyChanged
     {
-        private readonly EquipmentRepo _repository = new EquipmentRepo();
+        private readonly IEquipmentRepository _repository;
 
         private List<Equipment> _allOriginalItems = new List<Equipment>();
 
@@ -24,8 +24,9 @@ namespace MovieShop.ViewModels
             }
         }
 
-        public MarketplaceViewModel()
+        public MarketplaceViewModel(IEquipmentRepository equipmentRepo)
         {
+            _repository = equipmentRepo;
             LoadData();
         }
 

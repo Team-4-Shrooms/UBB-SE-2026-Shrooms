@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Data.SqlClient;
@@ -47,8 +48,9 @@ public sealed class MovieCatalogItem
 
 public sealed partial class MovieCatalogPage : Page
 {
-    private readonly MovieRepo _movieRepo = new();
-    private readonly ActiveSalesRepo _salesRepo = new();
+    private readonly IMovieRepository _movieRepo = App.Services.GetRequiredService<IMovieRepository>();
+    private readonly IActiveSalesRepository _salesRepo = App.Services.GetRequiredService<IActiveSalesRepository>();
+    private readonly IDatabaseSingleton _db = App.Services.GetRequiredService<IDatabaseSingleton>();
     private List<Movie> _sourceMovies = new();
     private Dictionary<int, int> _reviewCountByMovieId = new();
     private MainViewModel? _mainVm;
@@ -192,13 +194,12 @@ public sealed partial class MovieCatalogPage : Page
         MoviesGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
     }
 
-    private static Dictionary<int, int> GetReviewCounts(IReadOnlyList<int> movieIds)
+    private Dictionary<int, int> GetReviewCounts(IReadOnlyList<int> movieIds)
     {
         var result = new Dictionary<int, int>();
         if (movieIds.Count == 0) return result;
 
-        var db = DatabaseSingleton.Instance;
-        db.OpenConnection();
+        _db.OpenConnection();
 
         try
         {
@@ -209,7 +210,7 @@ public sealed partial class MovieCatalogPage : Page
                             FROM Reviews
                             WHERE MovieID IN ({inClause})";
 
-            using var cmd = new SqlCommand(query, db.Connection);
+            using var cmd = new SqlCommand(query, _db.Connection);
             for (var i = 0; i < movieIds.Count; i++)
                 cmd.Parameters.AddWithValue(paramNames[i], movieIds[i]);
 
@@ -223,7 +224,7 @@ public sealed partial class MovieCatalogPage : Page
         }
         finally
         {
-            db.CloseConnection();
+            _db.CloseConnection();
         }
 
         return result;

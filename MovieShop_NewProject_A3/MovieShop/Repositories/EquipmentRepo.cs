@@ -6,7 +6,7 @@ using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
-    public class EquipmentRepo
+    public class EquipmentRepo : IEquipmentRepository
     {
         DatabaseSingleton _db = DatabaseSingleton.Instance;
 

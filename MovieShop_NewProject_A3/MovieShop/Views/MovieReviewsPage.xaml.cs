@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Models;
@@ -12,7 +13,7 @@ public sealed partial class MovieReviewsPage : Page
 {
     private Movie? _movie;
     private MainViewModel? _mainVm;
-    private readonly ReviewRepo _reviewRepo = new();
+    private readonly IReviewRepository _reviewRepo = App.Services.GetRequiredService<IReviewRepository>();
 
     public MovieReviewsPage()
     {

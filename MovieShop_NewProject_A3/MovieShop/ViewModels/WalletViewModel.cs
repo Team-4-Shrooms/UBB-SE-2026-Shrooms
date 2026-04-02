@@ -108,12 +108,14 @@ namespace MovieShop.ViewModels
         public IAsyncRelayCommand LoadTransactionsCommand { get; }
 
         // --- Repos ---
-        private readonly TransactionRepo _transactionRepo = new TransactionRepo();
-        private readonly UserRepo _userRepo = new UserRepo();
+        private readonly ITransactionRepository _transactionRepo;
+        private readonly IUserRepository _userRepo;
 
         // --- Constructor ---
-        public WalletViewModel(int userID, decimal currentBalance)
+        public WalletViewModel(int userID, decimal currentBalance, IUserRepository userRepo, ITransactionRepository transactionRepo)
         {
+            _userRepo = userRepo;
+            _transactionRepo = transactionRepo;
             _currentUserID = userID;
             _balance = currentBalance;
             _transactions = new ObservableCollection<Transaction>();

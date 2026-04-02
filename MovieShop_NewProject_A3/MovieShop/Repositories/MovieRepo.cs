@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace MovieShop.Repositories
 {
-    public class MovieRepo
+    public class MovieRepo : IMovieRepository
     {
         private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
 

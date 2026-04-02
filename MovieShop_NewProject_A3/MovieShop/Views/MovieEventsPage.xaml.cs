@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Models;
@@ -13,6 +14,8 @@ namespace MovieShop.Views;
 {
     private Movie? _movie;
     private List<MovieEvent>? _allEvents;
+    private readonly IEventRepository _eventRepo = App.Services.GetRequiredService<IEventRepository>();
+    private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
 
         private static object? FindDescendantByName(DependencyObject parent, string name)
         {
@@ -43,7 +46,7 @@ namespace MovieShop.Views;
         if (EventsList.ItemsSource == null)
         {
             TitleBlock.Text = "Events";
-            _allEvents = new EventRepo().GetAllEvents();
+            _allEvents = _eventRepo.GetAllEvents();
             EventsList.ItemsSource = _allEvents;
             UpdateBuyButtons();
         }
@@ -84,7 +87,7 @@ namespace MovieShop.Views;
     {
         // Ensure buttons are disabled when user not logged in or insufficient funds
         var userId = SessionManager.CurrentUserID;
-        var balance = userId > 0 ? new UserRepo().GetBalance(userId) : 0m;
+        var balance = userId > 0 ? _userRepo.GetBalance(userId) : 0m;
 
         foreach (var item in EventsList.Items)
         {
@@ -125,13 +128,13 @@ namespace MovieShop.Views;
         if (_movie == null)
         {
             TitleBlock.Text = "Events";
-            var eventsAll = new EventRepo().GetAllEvents();
+            var eventsAll = _eventRepo.GetAllEvents();
             EventsList.ItemsSource = eventsAll;
             return;
         }
 
         TitleBlock.Text = $"Events - {_movie.Title}";
-        var events = new EventRepo().GetEventsForMovie(_movie.ID);
+        var events = _eventRepo.GetEventsForMovie(_movie.ID);
         EventsList.ItemsSource = events;
     }
 
@@ -162,7 +165,7 @@ namespace MovieShop.Views;
                 Models.SessionManager.CurrentUserID = 1;
                 try
                 {
-                    Models.SessionManager.CurrentUserBalance = new Repositories.UserRepo().GetBalance(1);
+                    Models.SessionManager.CurrentUserBalance = _userRepo.GetBalance(1);
                 }
                 catch
                 {
@@ -173,9 +176,9 @@ namespace MovieShop.Views;
 
             try
             {
-                new EventRepo().PurchaseTicket(Models.SessionManager.CurrentUserID, me.ID);
+                _eventRepo.PurchaseTicket(Models.SessionManager.CurrentUserID, me.ID);
 
-                Models.SessionManager.CurrentUserBalance = new Repositories.UserRepo().GetBalance(Models.SessionManager.CurrentUserID);
+                Models.SessionManager.CurrentUserBalance = _userRepo.GetBalance(Models.SessionManager.CurrentUserID);
                 UpdateBuyButtons();
 
                 var dialog = new ContentDialog

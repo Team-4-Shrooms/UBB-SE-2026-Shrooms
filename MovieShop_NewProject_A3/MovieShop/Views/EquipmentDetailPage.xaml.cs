@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
@@ -10,8 +11,8 @@ namespace MovieShop.Views
 {
     public sealed partial class EquipmentDetailPage : Page
     {
-        private readonly EquipmentRepo _repo = new EquipmentRepo();
-        private readonly UserRepo _userRepo = new UserRepo();
+        private readonly IEquipmentRepository _repo = App.Services.GetRequiredService<IEquipmentRepository>();
+        private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
         private Equipment _selectedItem;
 
         public EquipmentDetailPage(Equipment item)

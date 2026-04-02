@@ -1,24 +1,8 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using MovieShop.Repositories;
+using MovieShop.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace MovieShop
 {
@@ -29,6 +13,8 @@ namespace MovieShop
     {
         public static Window? _window;
 
+        public static IServiceProvider Services { get; private set; }
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -36,13 +22,34 @@ namespace MovieShop
         public App()
         {
             InitializeComponent();
+
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            Services = serviceCollection.BuildServiceProvider();
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IDatabaseSingleton>(DatabaseSingleton.Instance);
+
+            services.AddTransient<IUserRepository, UserRepo>();
+            services.AddTransient<IMovieRepository, MovieRepo>();
+            services.AddTransient<IEquipmentRepository, EquipmentRepo>();
+            services.AddTransient<IEventRepository, EventRepo>();
+            services.AddTransient<IActiveSalesRepository, ActiveSalesRepo>();
+            services.AddTransient<IReviewRepository, ReviewRepo>();
+            services.AddTransient<ITransactionRepository, TransactionRepo>();
+            services.AddTransient<IInventoryRepository, InventoryRepo>();
+
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<MarketplaceViewModel>();
         }
 
         /// <summary>
         /// Invoked when the application is launched.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
             _window.Activate();
