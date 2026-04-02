@@ -39,7 +39,7 @@
 									"parentStyle": true,
 									"left": 441,
 									"top": 333,
-									"width": 235.64501953125,
+									"width": 245.033203125,
 									"height": 13,
 									"text": "User"
 								},
@@ -66,7 +66,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 356,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -82,7 +82,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 371,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -98,7 +98,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 386,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -114,7 +114,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 401,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -130,7 +130,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 416,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -146,7 +146,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 431,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -162,7 +162,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 446,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -178,7 +178,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 461,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -194,7 +194,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 476,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -210,7 +210,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 491,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -226,7 +226,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 506,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -242,7 +242,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 521,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -258,7 +258,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 536,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										},
 										{
@@ -274,7 +274,7 @@
 											"parentStyle": true,
 											"left": 446,
 											"top": 551,
-											"width": 225.64501953125,
+											"width": 235.033203125,
 											"height": 13
 										}
 									],
@@ -282,7 +282,7 @@
 									"parentStyle": true,
 									"left": 441,
 									"top": 351,
-									"width": 235.64501953125,
+									"width": 245.033203125,
 									"height": 218
 								}
 							],
@@ -290,7 +290,7 @@
 							"parentStyle": false,
 							"left": 441,
 							"top": 328,
-							"width": 235.64501953125,
+							"width": 245.033203125,
 							"height": 241,
 							"nameLabel": {
 								"$ref": "AAAAAAGc3KZ/uRlnhFE="
@@ -513,7 +513,7 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 702,
+									"left": 711,
 									"top": 371,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -549,7 +549,7 @@
 							"tail": {
 								"$ref": "AAAAAAGc3KZ/uBlmx+w="
 							},
-							"points": "677:392;864:392;864:432",
+							"points": "686:392;864:392;864:432",
 							"nameLabel": {
 								"$ref": "AAAAAAGc3Sb9ext1E0Y="
 							},
@@ -935,7 +935,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "Id",
-							"type": "INTEGER",
+							"type": "GUID",
 							"length": 0,
 							"primaryKey": true,
 							"unique": true
@@ -947,8 +947,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "Username",
-							"type": "VARCHAR",
-							"length": "50",
+							"type": "NVARCHAR",
+							"length": "100",
 							"unique": true
 						},
 						{
@@ -958,8 +958,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "DisplayName",
-							"type": "VARCHAR",
-							"length": "50"
+							"type": "NVARCHAR",
+							"length": "200"
 						},
 						{
 							"_type": "ERDColumn",
@@ -968,8 +968,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "Email",
-							"type": "VARCHAR",
-							"length": "100",
+							"type": "NVARCHAR",
+							"length": "200",
 							"unique": true
 						},
 						{
@@ -979,8 +979,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "PasswordHash",
-							"type": "VARCHAR",
-							"length": "100"
+							"type": "NVARCHAR",
+							"length": "500"
 						},
 						{
 							"_type": "ERDColumn",
@@ -989,8 +989,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "PhoneNumber",
-							"type": "VARCHAR",
-							"length": "20",
+							"type": "NVARCHAR",
+							"length": "50",
 							"nullable": true
 						},
 						{
@@ -1000,8 +1000,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "AvatarUrl",
-							"type": "VARCHAR",
-							"length": "255",
+							"type": "NVARCHAR",
+							"length": "500",
 							"nullable": true
 						},
 						{
@@ -1011,7 +1011,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "IsSuspended",
-							"type": "BOOLEAN"
+							"type": "BIT"
 						},
 						{
 							"_type": "ERDColumn",
@@ -1020,7 +1020,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "CreatedAt",
-							"type": "DATETIME"
+							"type": "DATETIME2"
 						},
 						{
 							"_type": "ERDColumn",
@@ -1029,7 +1029,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "UpdatedAt",
-							"type": "DATETIME"
+							"type": "DATETIME2"
 						},
 						{
 							"_type": "ERDColumn",
@@ -1038,8 +1038,8 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "StreetName",
-							"type": "VARCHAR",
-							"length": "50",
+							"type": "NVARCHAR",
+							"length": "200",
 							"nullable": true
 						},
 						{
@@ -1049,7 +1049,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "StreetNumber",
-							"type": "VARCHAR",
+							"type": "NVARCHAR(20)",
 							"length": 0,
 							"nullable": true
 						},
@@ -1060,7 +1060,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "Country",
-							"type": "VARCHAR",
+							"type": "NVARCHAR",
 							"length": 100,
 							"nullable": true
 						},
@@ -1071,7 +1071,7 @@
 								"$ref": "AAAAAAGc3KZ/uBlkmbE="
 							},
 							"name": "City",
-							"type": "VARCHAR",
+							"type": "NVARCHAR",
 							"length": 100,
 							"nullable": true
 						}
@@ -1122,7 +1122,7 @@
 								"$ref": "AAAAAAGc3M9LABnvNiI="
 							},
 							"name": "Id",
-							"type": "INTEGER",
+							"type": "GUID",
 							"length": 0,
 							"primaryKey": true,
 							"unique": true
@@ -1134,7 +1134,7 @@
 								"$ref": "AAAAAAGc3M9LABnvNiI="
 							},
 							"name": "Name",
-							"type": "VARCHAR",
+							"type": "NVARCHAR",
 							"length": "50",
 							"unique": true
 						}
@@ -1185,7 +1185,7 @@
 								"$ref": "AAAAAAGc3Nn6QBokNpo="
 							},
 							"name": "UserId",
-							"type": "INTEGER",
+							"type": "GUID",
 							"length": 0,
 							"primaryKey": true,
 							"foreignKey": true
@@ -1197,7 +1197,7 @@
 								"$ref": "AAAAAAGc3Nn6QBokNpo="
 							},
 							"name": "RoleId",
-							"type": "INTEGER",
+							"type": "GUID",
 							"length": 0,
 							"primaryKey": true,
 							"foreignKey": true
@@ -1219,7 +1219,7 @@
 								"$ref": "AAAAAAGc3ZhGfhuzlqY="
 							},
 							"name": "UserId",
-							"type": "INTEGER",
+							"type": "GUID",
 							"primaryKey": true,
 							"foreignKey": true
 						},
@@ -1239,7 +1239,7 @@
 								"$ref": "AAAAAAGc3ZhGfhuzlqY="
 							},
 							"name": "LockedUntil",
-							"type": "DATETIME",
+							"type": "DATETIME2",
 							"nullable": true
 						}
 					]
