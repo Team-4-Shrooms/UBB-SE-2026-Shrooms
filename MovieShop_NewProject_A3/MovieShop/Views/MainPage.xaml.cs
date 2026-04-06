@@ -1,33 +1,27 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.UI;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using MovieShop.Models;
-using MovieShop.Repositories;
 using MovieShop.Services;
-
+using System.Collections.Generic;
+using System.Linq;
+using Windows.UI;
 
 namespace MovieShop.Views
 {
     public sealed partial class MainPage : UserControl
     {
-        public ViewModels.FlashSaleViewModel FlashSaleVM => MovieShop.Services.SaleService.CurrentSale;
+        public ViewModels.FlashSaleViewModel? FlashSaleVM => MovieShop.Services.SaleService.CurrentSale;
         private List<Movie> _sourceMovies = new();
         private Dictionary<int, int> _reviewCountByMovieId = new();
         private readonly IMovieCatalogService _catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
+
+        private readonly SolidColorBrush HoverBorderBrush = new SolidColorBrush(Color.FromArgb(255, 29, 185, 84));
+        private readonly SolidColorBrush HoverBackgroundBrush = new SolidColorBrush(Color.FromArgb(255, 48, 48, 48));
+        private readonly SolidColorBrush DefaultBorderBrush = new SolidColorBrush(Color.FromArgb(255, 64, 64, 64));
+        private readonly SolidColorBrush DefaultBackgroundBrush = new SolidColorBrush(Color.FromArgb(255, 42, 42, 42));
 
         public MainPage()
         {
@@ -65,16 +59,14 @@ namespace MovieShop.Views
             {
                 navPage.ViewModel.CurrentViewModel = "SalesPage";
             }
-
         }
 
-        private void FlashSaleVM_PropertyChanged(object senser, System.ComponentModel.PropertyChangedEventArgs e)
+        private void FlashSaleVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
                 UpdateBigBanner(FlashSaleVM.TimerText, FlashSaleVM.IsActive);
 
-                // Only refresh when the flash sale starts/ends (not every second).
                 if (e.PropertyName == nameof(ViewModels.FlashSaleViewModel.IsActive))
                     RefreshUndiscountedMovies();
             });
@@ -92,20 +84,21 @@ namespace MovieShop.Views
 
         private void ApplyFilterAndSort()
         {
-            var q = (SearchBox.Text ?? "").Trim().ToLower();
-            var list = string.IsNullOrEmpty(q)
+            var searchQuery = (SearchBox.Text ?? "").Trim().ToLower();
+
+            var filteredMovies = string.IsNullOrEmpty(searchQuery)
                 ? _sourceMovies
-                : _sourceMovies.Where(m => m.Title.ToLower().Contains(q));
+                : _sourceMovies.Where(movie => movie.Title.ToLower().Contains(searchQuery));
 
-            if (SortAscPrice.IsChecked == true) list = list.OrderBy(m => m.Price);
-            else if (SortDescPrice.IsChecked == true) list = list.OrderByDescending(m => m.Price);
-            else if (SortHighRating.IsChecked == true) list = list.OrderByDescending(m => m.Rating);
-            else if (SortLowRating.IsChecked == true) list = list.OrderBy(m => m.Rating);
-            else list = list.OrderBy(m => m.Title);
+            if (SortAscPrice.IsChecked == true) filteredMovies = filteredMovies.OrderBy(movie => movie.Price);
+            else if (SortDescPrice.IsChecked == true) filteredMovies = filteredMovies.OrderByDescending(movie => movie.Price);
+            else if (SortHighRating.IsChecked == true) filteredMovies = filteredMovies.OrderByDescending(movie => movie.Rating);
+            else if (SortLowRating.IsChecked == true) filteredMovies = filteredMovies.OrderBy(movie => movie.Rating);
+            else filteredMovies = filteredMovies.OrderBy(movie => movie.Title);
 
-            var orderedMovies = list.ToList();
+            var orderedMovies = filteredMovies.ToList();
             UndiscountedMoviesGrid.ItemsSource = orderedMovies
-                .Select(m => new MovieCatalogItem(m, _reviewCountByMovieId.TryGetValue(m.ID, out var c) ? c : 0))
+                .Select(movie => new MovieCatalogItem(movie, _reviewCountByMovieId.TryGetValue(movie.ID, out var count) ? count : 0))
                 .ToList();
         }
 
@@ -115,8 +108,8 @@ namespace MovieShop.Views
         {
             if (sender is not Border border) return;
 
-            border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 29, 185, 84));
-            border.Background = new SolidColorBrush(Color.FromArgb(255, 48, 48, 48));
+            border.BorderBrush = HoverBorderBrush;
+            border.Background = HoverBackgroundBrush;
             border.RenderTransform = new ScaleTransform { ScaleX = 1.03, ScaleY = 1.03 };
         }
 
@@ -124,8 +117,8 @@ namespace MovieShop.Views
         {
             if (sender is not Border border) return;
 
-            border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 64, 64, 64));
-            border.Background = new SolidColorBrush(Color.FromArgb(255, 42, 42, 42));
+            border.BorderBrush = DefaultBorderBrush;
+            border.Background = DefaultBackgroundBrush;
             border.RenderTransform = new ScaleTransform { ScaleX = 1, ScaleY = 1 };
         }
 
@@ -156,6 +149,5 @@ namespace MovieShop.Views
 
             return null;
         }
-
     }
 }

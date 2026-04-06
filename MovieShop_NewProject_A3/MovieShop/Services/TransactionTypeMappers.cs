@@ -4,16 +4,28 @@ namespace MovieShop.Services
 {
     public static class TransactionTypeMapper
     {
+        public const string MoviePurchaseDisplay = "🎬 Movie Purchase";
+        public const string TicketPurchaseDisplay = "🎟️ Ticket Purchase";
+        public const string EquipmentPurchaseDisplay = "🎥 Equipment Purchase";
+        public const string TopUpDisplay = "💳 Top-Up";
+        public const string EquipmentSaleDisplay = "💰 Equipment Sale";
+        public const string UnknownTransactionDisplay = "Unknown Transaction";
+
+        public const string StatusPendingDisplay = "⏳ Pending";
+        public const string StatusCompletedDisplay = "✅ Completed";
+        public const string StatusFailedDisplay = "❌ Failed";
+        public const string UnknownStatusDisplay = "Unknown Status";
+
         public static string ToDisplayString(string type)
         {
             return type switch
             {
-                "MoviePurchase" => "🎬 Movie Purchase",
-                "TicketPurchase" => "🎟️ Ticket Purchase",
-                "EquipmentPurchase" => "🎥 Equipment Purchase",
-                "TopUp" => "💳 Top-Up",
-                "EquipmentSale" => "💰 Equipment Sale",
-                _ => "Unknown Transaction"
+                "MoviePurchase" => MoviePurchaseDisplay,
+                "TicketPurchase" => TicketPurchaseDisplay,
+                "EquipmentPurchase" => EquipmentPurchaseDisplay,
+                "TopUp" => TopUpDisplay,
+                "EquipmentSale" => EquipmentSaleDisplay,
+                _ => UnknownTransactionDisplay
             };
         }
 
@@ -21,10 +33,10 @@ namespace MovieShop.Services
         {
             return status switch
             {
-                "Pending" => "⏳ Pending",
-                "Completed" => "✅ Completed",
-                "Failed" => "❌ Failed",
-                _ => "Unknown Status"
+                "Pending" => StatusPendingDisplay,
+                "Completed" => StatusCompletedDisplay,
+                "Failed" => StatusFailedDisplay,
+                _ => UnknownStatusDisplay
             };
         }
 

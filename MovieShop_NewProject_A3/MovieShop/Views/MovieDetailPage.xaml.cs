@@ -1,28 +1,22 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Data.SqlClient;
 using MovieShop.Models;
-using MovieShop.Repositories;
+using MovieShop.Services;
 using MovieShop.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Windows.UI;
-using MovieShop.Services;
 
 namespace MovieShop.Views;
 
 public sealed partial class MovieDetailPage : Page
 {
+    private const double MaxRating = 10.0; 
+
     private Movie? _movie;
-    private MainViewModel? _mainVm;
-   private readonly IMoviePurchaseService _purchaseService = App.Services.GetRequiredService<IMoviePurchaseService>();
+    private MainViewModel? _mainViewModel;
+    private readonly IMoviePurchaseService _purchaseService = App.Services.GetRequiredService<IMoviePurchaseService>();
     private readonly IMovieReviewService _reviewService = App.Services.GetRequiredService<IMovieReviewService>();
     private readonly IMovieCatalogService _movieCatalogService = App.Services.GetRequiredService<IMovieCatalogService>();
 
@@ -39,7 +33,7 @@ public sealed partial class MovieDetailPage : Page
             return;
 
         _movie = args.Movie;
-        _mainVm = args.MainViewModel;
+        _mainViewModel = args.MainViewModel;
 
         if (_movie == null)
             return;
@@ -48,7 +42,9 @@ public sealed partial class MovieDetailPage : Page
 
         TitleBlock.Text = _movie.Title;
         DescriptionBlock.Text = string.IsNullOrEmpty(_movie.Description) ? "—" : _movie.Description;
-        RatingBlock.Text = $"Rating: {_movie.Rating:0.0} / 10";
+
+        RatingBlock.Text = $"Rating: {_movie.Rating:0.0} / {MaxRating}";
+
         UpdatePriceDisplay();
 
         TrySetPoster(_movie.ImageUrl);
@@ -58,7 +54,6 @@ public sealed partial class MovieDetailPage : Page
             ReviewsButton,
             _reviewService.BuildStarDistributionTooltip(_movie.ID)
         );
-
     }
 
     private void UpdatePriceDisplay()
@@ -99,23 +94,23 @@ public sealed partial class MovieDetailPage : Page
         if (_movie == null)
             return;
 
-        _mainVm?.RefreshBalanceFromDatabase();
-        var props = _purchaseService.GetBuyButtonProps(
-        _movie,
-        SessionManager.CurrentUserID,
-        SessionManager.IsLoggedIn,
-        _mainVm?.Balance ?? SessionManager.CurrentUserBalance
-    );
+        _mainViewModel?.RefreshBalanceFromDatabase();
+        var buttonProperties = _purchaseService.GetBuyButtonProps( 
+            _movie,
+            SessionManager.CurrentUserID,
+            SessionManager.IsLoggedIn,
+            _mainViewModel?.Balance ?? SessionManager.CurrentUserBalance
+        );
 
-        BuyMovieButton.Content = props.Content;
-        BuyMovieButton.IsEnabled = props.IsEnabled;
-        BuyMovieButton.Opacity = props.Opacity;
-        ToolTipService.SetToolTip(BuyMovieButton, props.ToolTip);
+        BuyMovieButton.Content = buttonProperties.Content;
+        BuyMovieButton.IsEnabled = buttonProperties.IsEnabled;
+        BuyMovieButton.Opacity = buttonProperties.Opacity;
+        ToolTipService.SetToolTip(BuyMovieButton, buttonProperties.ToolTip);
     }
 
     private async void BuyMovieButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (_movie == null || _mainVm == null)
+        if (_movie == null || _mainViewModel == null)
             return;
 
         if (!SessionManager.IsLoggedIn)
@@ -125,7 +120,7 @@ public sealed partial class MovieDetailPage : Page
         if (!BuyMovieButton.IsEnabled)
             return;
 
-        var confirm = new ContentDialog
+        var confirmDialog = new ContentDialog 
         {
             Title = "Confirm purchase",
             Content = $"Buy \"{_movie.Title}\" for {_movie.GetEffectivePrice():C}? This will be charged to your balance.",
@@ -135,19 +130,19 @@ public sealed partial class MovieDetailPage : Page
             XamlRoot = XamlRoot
         };
 
-        if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+        if (await confirmDialog.ShowAsync() != ContentDialogResult.Primary)
             return;
 
         try
         {
             _purchaseService.PurchaseMovie(SessionManager.CurrentUserID, _movie);
 
-            _mainVm.RefreshWallet();
-            SessionManager.CurrentUserBalance = _mainVm.Balance;
+            _mainViewModel.RefreshWallet();
+            SessionManager.CurrentUserBalance = _mainViewModel.Balance;
 
             RefreshBuyButtonState();
 
-            var dialog = new ContentDialog
+            var successDialog = new ContentDialog 
             {
                 Title = "Purchase successful",
                 Content = $"You now own \"{_movie.Title}\". It has been added to your inventory.",
@@ -155,47 +150,47 @@ public sealed partial class MovieDetailPage : Page
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot
             };
-            _ = await dialog.ShowAsync();
+            _ = await successDialog.ShowAsync();
 
             if (this.XamlRoot?.Content is NavigationPage navPage)
             {
                 navPage.ViewModel.CurrentViewModel = "Inventory";
             }
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException exception) 
         {
-            var err = new ContentDialog
+            var errorDialog = new ContentDialog 
             {
                 Title = "Cannot complete purchase",
-                Content = ex.Message,
+                Content = exception.Message,
                 PrimaryButtonText = "OK",
                 XamlRoot = XamlRoot
             };
-            _ = await err.ShowAsync();
+            _ = await errorDialog.ShowAsync();
         }
     }
 
     private void ReviewsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (_movie == null || _mainVm == null)
+        if (_movie == null || _mainViewModel == null)
             return;
 
         Frame?.Navigate(typeof(MovieReviewsPage), new MovieReviewsNavArgs
         {
             Movie = _movie,
-            MainViewModel = _mainVm
+            MainViewModel = _mainViewModel
         });
     }
 
     private void EventsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (_movie == null || _mainVm == null)
+        if (_movie == null || _mainViewModel == null)
             return;
 
         Frame?.Navigate(typeof(MovieEventsPage), new MovieEventsNavArgs
         {
             Movie = _movie,
-            MainViewModel = _mainVm
+            MainViewModel = _mainViewModel
         });
     }
 
@@ -212,6 +207,4 @@ public sealed partial class MovieDetailPage : Page
             navPage.ViewModel.CurrentViewModel = "Shop";
         }
     }
-
-
 }

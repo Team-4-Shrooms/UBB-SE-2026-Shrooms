@@ -25,7 +25,6 @@ namespace MovieShop.ViewModels
         public FlashSaleViewModel FlashSaleVM { get; set; }
         private readonly IActiveSalesRepository _salesRepo;
 
-        // --- Balance ---
         private decimal _balance;
         public decimal Balance
         {
@@ -63,7 +62,6 @@ namespace MovieShop.ViewModels
             else
                 Balance = 0;
 
-            //SALE LOGIC
             var currentSales = _salesRepo.GetCurrentSales();
             var activeSale = currentSales.FirstOrDefault();
 
