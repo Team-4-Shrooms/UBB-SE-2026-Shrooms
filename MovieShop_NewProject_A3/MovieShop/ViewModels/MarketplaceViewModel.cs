@@ -1,12 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using MovieShop.Models;
+using MovieShop.Repositories;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Linq;
-using MovieShop.Models;       
-using MovieShop.Repositories; 
+using System.Runtime.CompilerServices;
 
-namespace MovieShop.ViewModels 
+namespace MovieShop.ViewModels
 {
     public class MarketplaceViewModel : INotifyPropertyChanged
     {
@@ -20,7 +20,7 @@ namespace MovieShop.ViewModels
         {
             get
             {
-                return 5000.00m;
+                return SessionManager.CurrentUserBalance;
             }
         }
 
@@ -42,7 +42,7 @@ namespace MovieShop.ViewModels
         {
             var filtered = string.IsNullOrEmpty(category) || category == "All"
                 ? _allOriginalItems
-                : _allOriginalItems.Where(x => x.Category == category).ToList();
+                : _allOriginalItems.Where(item => item.Category == category).ToList();
 
             UpdateDisplayList(filtered);
         }

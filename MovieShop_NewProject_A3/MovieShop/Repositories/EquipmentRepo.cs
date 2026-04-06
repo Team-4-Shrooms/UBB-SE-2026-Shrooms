@@ -1,26 +1,31 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using MovieShop.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Data.SqlClient;
-using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
     public class EquipmentRepo : IEquipmentRepository
     {
-        DatabaseSingleton _db = DatabaseSingleton.Instance;
+        private const string StatusAvailable = "Available";
+        private const string StatusSold = "Sold";
+        private const string StatusCompleted = "Completed";
+
+        DatabaseSingleton _database = DatabaseSingleton.Instance;
 
         public List<Equipment> FetchAvailableEquipment()
         {
             var items = new List<Equipment>();
 
-            string query = "SELECT ID, SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition FROM Equipment WHERE Status = 'Available'";
-            SqlCommand cmd = new SqlCommand(query, _db.Connection);
+            string query = $"SELECT ID, SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition FROM Equipment WHERE Status = '{StatusAvailable}'";
+
+            SqlCommand command = new SqlCommand(query, _database.Connection);
 
             try
             {
-                _db.OpenConnection();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                _database.OpenConnection();
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -38,12 +43,12 @@ namespace MovieShop.Repositories
                         });
                     }
                 }
-                _db.CloseConnection();
+                _database.CloseConnection();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _db.CloseConnection();
-                Debug.WriteLine("Fetch error: " + ex.Message);
+                _database.CloseConnection();
+                Debug.WriteLine("Fetch error: " + exception.Message);
                 throw;
             }
 
@@ -52,60 +57,60 @@ namespace MovieShop.Repositories
 
         public void ListItem(Equipment item)
         {
-            string query = @"INSERT INTO Equipment (SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition) 
-                            VALUES (@seller, @title, @price, 'Available', @desc, @img, @cat, @cond)";
+            string query = $@"INSERT INTO Equipment (SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition) 
+                            VALUES (@sellerId, @title, @price, '{StatusAvailable}', @description, @imageUrl, @category, @condition)";
 
-            SqlCommand cmd = new SqlCommand(query, _db.Connection);
-            cmd.Parameters.AddWithValue("@seller", item.SellerID);
-            cmd.Parameters.AddWithValue("@title", item.Title);
-            cmd.Parameters.AddWithValue("@price", item.Price);
-            cmd.Parameters.AddWithValue("@cat", item.Category ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@cond", item.Condition ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@desc", string.IsNullOrEmpty(item.Description) ? (object)DBNull.Value : item.Description);
-            cmd.Parameters.AddWithValue("@img", string.IsNullOrEmpty(item.ImageUrl) ? (object)DBNull.Value : item.ImageUrl);
+            SqlCommand command = new SqlCommand(query, _database.Connection);
+            command.Parameters.AddWithValue("@sellerId", item.SellerID);
+            command.Parameters.AddWithValue("@title", item.Title);
+            command.Parameters.AddWithValue("@price", item.Price);
+            command.Parameters.AddWithValue("@category", item.Category ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@condition", item.Condition ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@description", string.IsNullOrEmpty(item.Description) ? (object)DBNull.Value : item.Description);
+            command.Parameters.AddWithValue("@imageUrl", string.IsNullOrEmpty(item.ImageUrl) ? (object)DBNull.Value : item.ImageUrl);
 
-            _db.OpenConnection();
-            cmd.ExecuteNonQuery();
-            _db.CloseConnection();
+            _database.OpenConnection();
+            command.ExecuteNonQuery();
+            _database.CloseConnection();
         }
 
         public void PurchaseEquipment(int equipmentId, int buyerId, decimal price, string address)
         {
-            _db.OpenConnection();
-            SqlTransaction sqlTrans = _db.Connection.BeginTransaction();
+            _database.OpenConnection();
+            SqlTransaction sqlTransaction = _database.Connection.BeginTransaction();
 
             try
             {
-                string deductSql = "UPDATE Users SET Balance = Balance - @price WHERE ID = @bid";
-                SqlCommand cmd1 = new SqlCommand(deductSql, _db.Connection, sqlTrans);
-                cmd1.Parameters.AddWithValue("@price", price);
-                cmd1.Parameters.AddWithValue("@bid", buyerId);
-                cmd1.ExecuteNonQuery();
+                string deductQuery = "UPDATE Users SET Balance = Balance - @price WHERE ID = @buyerId";
+                SqlCommand deductCommand = new SqlCommand(deductQuery, _database.Connection, sqlTransaction);
+                deductCommand.Parameters.AddWithValue("@price", price);
+                deductCommand.Parameters.AddWithValue("@buyerId", buyerId);
+                deductCommand.ExecuteNonQuery();
 
-                string updateEquip = "UPDATE Equipment SET Status = 'Sold' WHERE ID = @eid";
-                SqlCommand cmd2 = new SqlCommand(updateEquip, _db.Connection, sqlTrans);
-                cmd2.Parameters.AddWithValue("@eid", equipmentId);
-                cmd2.ExecuteNonQuery();
+                string updateEquipmentQuery = $"UPDATE Equipment SET Status = '{StatusSold}' WHERE ID = @equipmentId";
+                SqlCommand updateEquipmentCommand = new SqlCommand(updateEquipmentQuery, _database.Connection, sqlTransaction);
+                updateEquipmentCommand.Parameters.AddWithValue("@equipmentId", equipmentId);
+                updateEquipmentCommand.ExecuteNonQuery();
 
-                string logTrans = @"INSERT INTO Transactions (BuyerID, SellerID, EquipmentID, Amount, Status, ShippingAddress, Type, Timestamp) 
-                                    SELECT @bid, SellerID, ID, @amount, 'Completed', @addr, 'EquipmentPurchase', GETDATE()
-                                    FROM Equipment WHERE ID = @eid";
+                string logTransactionQuery = $@"INSERT INTO Transactions (BuyerID, SellerID, EquipmentID, Amount, Status, ShippingAddress, Type, Timestamp) 
+                                              SELECT @buyerId, SellerID, ID, @amount, '{StatusCompleted}', @address, 'EquipmentPurchase', GETDATE()
+                                              FROM Equipment WHERE ID = @equipmentId";
 
-                SqlCommand cmd3 = new SqlCommand(logTrans, _db.Connection, sqlTrans);
-                cmd3.Parameters.AddWithValue("@bid", buyerId);
-                cmd3.Parameters.AddWithValue("@amount", -price);
-                cmd3.Parameters.AddWithValue("@addr", address);
-                cmd3.Parameters.AddWithValue("@eid", equipmentId);
-                cmd3.ExecuteNonQuery();
+                SqlCommand logTransactionCommand = new SqlCommand(logTransactionQuery, _database.Connection, sqlTransaction);
+                logTransactionCommand.Parameters.AddWithValue("@buyerId", buyerId);
+                logTransactionCommand.Parameters.AddWithValue("@amount", -price);
+                logTransactionCommand.Parameters.AddWithValue("@address", address);
+                logTransactionCommand.Parameters.AddWithValue("@equipmentId", equipmentId);
+                logTransactionCommand.ExecuteNonQuery();
 
-                sqlTrans.Commit();
-                _db.CloseConnection();
+                sqlTransaction.Commit();
+                _database.CloseConnection();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                sqlTrans.Rollback();
-                _db.CloseConnection();
-                Debug.WriteLine("Failed transaction: " + ex.Message);
+                sqlTransaction.Rollback();
+                _database.CloseConnection();
+                Debug.WriteLine("Failed transaction: " + exception.Message);
                 throw;
             }
         }

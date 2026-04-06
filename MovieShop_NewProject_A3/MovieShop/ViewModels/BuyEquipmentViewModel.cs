@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace MovieMarketplace.ViewModels
+namespace MovieShop.ViewModels
 {
     public class BuyEquipmentViewModel : INotifyPropertyChanged
     {
@@ -18,14 +18,14 @@ namespace MovieMarketplace.ViewModels
             }
         }
 
-
         public bool CanPurchase
         {
             get
             {
                 if (SelectedItem == null) return false;
                 bool isLoggedIn = SessionManager.CurrentUserID > 0;
-                decimal userBalance = 5000.00m; 
+
+                decimal userBalance = SessionManager.CurrentUserBalance;
 
                 return isLoggedIn && userBalance >= SelectedItem.Price;
             }

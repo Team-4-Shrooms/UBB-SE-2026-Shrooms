@@ -1,14 +1,13 @@
 using Microsoft.Data.SqlClient;
+using MovieShop.Models;
 using System;
 using System.Collections.Generic;
-
-using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
     public class ActiveSalesRepo : IActiveSalesRepository
     {
-        DatabaseSingleton _db = DatabaseSingleton.Instance;
+        DatabaseSingleton _database = DatabaseSingleton.Instance; 
 
         public Dictionary<int, decimal> GetBestDiscountPercentByMovieId()
         {
@@ -16,9 +15,9 @@ namespace MovieShop.Repositories
             foreach (var sale in GetCurrentSales())
             {
                 var id = sale.Movie.ID;
-                var pct = sale.DiscountPercentage;
-                if (!map.TryGetValue(id, out var existing) || pct > existing)
-                    map[id] = pct;
+                var percentage = sale.DiscountPercentage; 
+                if (!map.TryGetValue(id, out var existing) || percentage > existing)
+                    map[id] = percentage;
             }
 
             return map;
@@ -26,12 +25,12 @@ namespace MovieShop.Repositories
 
         public static void ApplyBestDiscountsToMovies(IReadOnlyList<Movie> movies, Dictionary<int, decimal> bestDiscountByMovieId)
         {
-            foreach (var m in movies)
+            foreach (var movie in movies) 
             {
-                if (bestDiscountByMovieId.TryGetValue(m.ID, out var pct))
-                    m.ActiveSaleDiscountPercent = pct;
+                if (bestDiscountByMovieId.TryGetValue(movie.ID, out var percentage)) 
+                    movie.ActiveSaleDiscountPercent = percentage;
                 else
-                    m.ActiveSaleDiscountPercent = null;
+                    movie.ActiveSaleDiscountPercent = null;
             }
         }
 
@@ -45,29 +44,29 @@ namespace MovieShop.Repositories
                             WHERE s.StartTime <= GETDATE() AND s.EndTime > GETDATE()
                             ORDER BY s.EndTime ASC";
 
-            
-            SqlCommand cmd = new SqlCommand(query, _db.Connection);
-            _db.OpenConnection();
+            SqlCommand command = new SqlCommand(query, _database.Connection); 
+            _database.OpenConnection();
 
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            while(reader.Read())
+            using (SqlDataReader reader = command.ExecuteReader())
             {
-                sales.Add(new ActiveSale
+                while (reader.Read())
                 {
-                    ID = (int)reader["ID"],
-                    DiscountPercentage = (decimal)reader["DiscountPercentage"],
-                    EndTime = (DateTime)reader["EndTime"],
-                    Movie = new Movie
+                    sales.Add(new ActiveSale
                     {
-                        ID = (int)reader["MovieID"],
-                        Title = reader["Title"].ToString() ?? "<no title>",
-                        Price = (decimal)reader["Price"]
-                    }
-                });
+                        ID = (int)reader["ID"],
+                        DiscountPercentage = (decimal)reader["DiscountPercentage"],
+                        EndTime = (DateTime)reader["EndTime"],
+                        Movie = new Movie
+                        {
+                            ID = (int)reader["MovieID"],
+                            Title = reader["Title"].ToString() ?? "<no title>",
+                            Price = (decimal)reader["Price"]
+                        }
+                    });
+                }
             }
 
-            _db.CloseConnection();
+            _database.CloseConnection();
             return sales;
         }
     }
