@@ -10,7 +10,7 @@ namespace MovieMarketplace.Views
 {
     public sealed partial class MyOrdersPage : Page
     {
-        private readonly EquipmentRepository _repo = new EquipmentRepository();
+        private readonly EquipmentRepository repo = new EquipmentRepository();
 
         public ObservableCollection<TransactionView> Transactions { get; set; } = new();
 
@@ -22,7 +22,7 @@ namespace MovieMarketplace.Views
 
         private void LoadOrders()
         {
-            var data = _repo.FetchUserOrders(SessionManager.CurrentUserID);
+            var data = repo.FetchUserOrders(SessionManager.CurrentUserID);
 
             Transactions.Clear();
 
@@ -42,7 +42,7 @@ namespace MovieMarketplace.Views
             {
                 try
                 {
-                    _repo.ConfirmDelivery(transactionId);
+                    repo.ConfirmDelivery(transactionId);
 
                     ContentDialog success = new ContentDialog
                     {

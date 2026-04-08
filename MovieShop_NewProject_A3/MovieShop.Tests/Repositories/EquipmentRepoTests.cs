@@ -5,18 +5,18 @@ namespace MovieShop.Tests.Repositories
 {
     public class EquipmentRepoTests
     {
-        private readonly EquipmentRepo _repo;
+        private readonly EquipmentRepo repo;
 
         public EquipmentRepoTests()
         {
-            _repo = new EquipmentRepo();
+            repo = new EquipmentRepo();
         }
 
         [Fact]
         public void FetchAvailableEquipment_ExecutesAndReturnsList()
         {
             // Integration test
-            var result = _repo.FetchAvailableEquipment();
+            var result = repo.FetchAvailableEquipment();
             Assert.NotNull(result);
         }
     }

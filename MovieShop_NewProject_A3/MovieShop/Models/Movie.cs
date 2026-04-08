@@ -26,7 +26,7 @@ namespace MovieShop.Models
 
         public bool HasActiveSale => ActiveSaleDiscountPercent is decimal d && d > 0;
 
-        public decimal GetEffectivePrice() => HasActiveSale ? decimal.Round(Price * (1 - ActiveSaleDiscountPercent!.Value / 100m), 2, MidpointRounding.AwayFromZero)
+        public decimal GetEffectivePrice() => HasActiveSale ? decimal.Round(Price * (1 - (ActiveSaleDiscountPercent!.Value / 100m)), 2, MidpointRounding.AwayFromZero)
                                                             : Price;
 
         public decimal GetDiscountedPrice(double discountPercentage) => Price * (1 - (decimal)(discountPercentage / 100.0));

@@ -1,5 +1,5 @@
-using MovieShop.Models;
 using System.Collections.Generic;
+using MovieShop.Models;
 
 namespace MovieShop.Services
 {

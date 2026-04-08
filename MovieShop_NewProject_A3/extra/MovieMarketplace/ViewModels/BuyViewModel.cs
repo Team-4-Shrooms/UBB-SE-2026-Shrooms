@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MovieMarketplace.Models;
 
@@ -6,13 +6,13 @@ namespace MovieMarketplace.ViewModels
 {
     public class BuyViewModel : INotifyPropertyChanged
     {
-        private Equipment? _selectedItem;
+        private Equipment? selectedItem;
         public Equipment? SelectedItem
         {
-            get => _selectedItem;
+            get => selectedItem;
             set
             {
-                _selectedItem = value;
+                selectedItem = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CanPurchase)); 
             }

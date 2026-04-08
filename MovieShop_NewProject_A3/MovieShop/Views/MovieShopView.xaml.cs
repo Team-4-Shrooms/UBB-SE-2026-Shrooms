@@ -24,7 +24,9 @@ namespace MovieShop.Views
             Loaded -= MovieShopView_Loaded;
 
             if (HostViewModel == null)
+            {
                 return;
+            }
 
             if (InitialMovie != null)
             {

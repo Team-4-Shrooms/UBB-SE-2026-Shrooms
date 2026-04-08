@@ -1,14 +1,14 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Windows.UI;
-using MovieShop.Models;
-using MovieShop.ViewModels;
-using MovieShop.Services;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+using MovieShop.Models;
+using MovieShop.Services;
+using MovieShop.ViewModels;
+using Windows.UI;
 
 namespace MovieShop.Views;
 
@@ -46,12 +46,12 @@ public sealed class MovieCatalogItem
 
 public sealed partial class MovieCatalogPage : Page
 {
-    private readonly IMovieCatalogService _catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
-    private List<Movie> _sourceMovies = new();
-    private Dictionary<int, int> _reviewCountByMovieId = new();
-    private MainViewModel? _mainVm;
-    private bool _showOnlySales;
-    private FlashSaleViewModel? _flashSaleVm;
+    private readonly IMovieCatalogService catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
+    private List<Movie> sourceMovies = new ();
+    private Dictionary<int, int> reviewCountByMovieId = new ();
+    private MainViewModel? mainVm;
+    private bool showOnlySales;
+    private FlashSaleViewModel? flashSaleVm;
 
     public MovieCatalogPage()
     {
@@ -65,18 +65,24 @@ public sealed partial class MovieCatalogPage : Page
 
         if (e.Parameter is MovieCatalogNavArgs args)
         {
-            _mainVm = args.MainViewModel;
-            _showOnlySales = args.ShowOnlySales;
+            mainVm = args.MainViewModel;
+            showOnlySales = args.ShowOnlySales;
         }
 
         LoadDiscountedMovies();
 
-        if (_flashSaleVm != null)
-            _flashSaleVm.PropertyChanged -= FlashSaleVm_PropertyChanged!;
-        _flashSaleVm = SaleService.CurrentSale;
-        if (_flashSaleVm != null)
-            _flashSaleVm.PropertyChanged += FlashSaleVm_PropertyChanged!;
-        ApplyCatalogDeactivation(_flashSaleVm?.IsActive ?? false);
+        if (flashSaleVm != null)
+        {
+            flashSaleVm.PropertyChanged -= FlashSaleVm_PropertyChanged!;
+        }
+
+        flashSaleVm = SaleService.CurrentSale;
+        if (flashSaleVm != null)
+        {
+            flashSaleVm.PropertyChanged += FlashSaleVm_PropertyChanged!;
+        }
+
+        ApplyCatalogDeactivation(flashSaleVm?.IsActive ?? false);
 
         SortAscPrice.IsChecked = true;
         ApplyFilterAndSort();
@@ -85,32 +91,52 @@ public sealed partial class MovieCatalogPage : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        if (_flashSaleVm != null)
-            _flashSaleVm.PropertyChanged -= FlashSaleVm_PropertyChanged!;
+        if (flashSaleVm != null)
+        {
+            flashSaleVm.PropertyChanged -= FlashSaleVm_PropertyChanged!;
+        }
     }
 
     private void SortOption_Changed(object sender, Microsoft.UI.Xaml.RoutedEventArgs e) => ApplyFilterAndSort();
 
     private void ApplyFilterAndSort()
     {
-        var q = (SearchBox.Text ?? "").Trim().ToLower();
-        var list = string.IsNullOrEmpty(q) ? _sourceMovies
-                                           : _sourceMovies.Where(m => m.Title.ToLower().Contains(q));
+        var q = (SearchBox.Text ?? string.Empty).Trim().ToLower();
+        var list = string.IsNullOrEmpty(q) ? sourceMovies
+                                           : sourceMovies.Where(m => m.Title.ToLower().Contains(q));
 
-        if (SortAscPrice.IsChecked == true) list = list.OrderBy(m => m.Price);
-        else if (SortDescPrice.IsChecked == true) list = list.OrderByDescending(m => m.Price);
-        else if (SortHighRating.IsChecked == true) list = list.OrderByDescending(m => m.Rating);
-        else if (SortLowRating.IsChecked == true) list = list.OrderBy(m => m.Rating);
-        else list = list.OrderBy(m => m.Title);
+        if (SortAscPrice.IsChecked == true)
+        {
+            list = list.OrderBy(m => m.Price);
+        }
+        else if (SortDescPrice.IsChecked == true)
+        {
+            list = list.OrderByDescending(m => m.Price);
+        }
+        else if (SortHighRating.IsChecked == true)
+        {
+            list = list.OrderByDescending(m => m.Rating);
+        }
+        else if (SortLowRating.IsChecked == true)
+        {
+            list = list.OrderBy(m => m.Rating);
+        }
+        else
+        {
+            list = list.OrderBy(m => m.Title);
+        }
 
         MoviesGrid.ItemsSource = list
-            .Select(m => new MovieCatalogItem(m, _reviewCountByMovieId.TryGetValue(m.ID, out var c) ? c : 0))
+            .Select(m => new MovieCatalogItem(m, reviewCountByMovieId.TryGetValue(m.ID, out var c) ? c : 0))
             .ToList();
     }
 
     private void MovieCard_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not Border border) return;
+        if (sender is not Border border)
+        {
+            return;
+        }
 
         border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 29, 185, 84));
         border.Background = new SolidColorBrush(Color.FromArgb(255, 48, 48, 48));
@@ -119,7 +145,10 @@ public sealed partial class MovieCatalogPage : Page
 
     private void MovieCard_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is not Border border) return;
+        if (sender is not Border border)
+        {
+            return;
+        }
 
         border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 64, 64, 64));
         border.Background = new SolidColorBrush(Color.FromArgb(255, 42, 42, 42));
@@ -128,31 +157,36 @@ public sealed partial class MovieCatalogPage : Page
 
     private void MoviesGrid_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is not MovieCatalogItem item || _mainVm == null) return;
+        if (e.ClickedItem is not MovieCatalogItem item || mainVm == null)
+        {
+            return;
+        }
 
         Frame?.Navigate(typeof(MovieDetailPage), new MovieDetailNavArgs
         {
             Movie = item.Movie,
-            MainViewModel = _mainVm
+            MainViewModel = mainVm
         });
     }
 
     private void LoadDiscountedMovies()
     {
-        var (movies, reviewCounts) = _catalogService.GetDiscountedMovies();
-        _sourceMovies = movies;
-        _reviewCountByMovieId = reviewCounts;
+        var (movies, reviewCounts) = catalogService.GetDiscountedMovies();
+        sourceMovies = movies;
+        reviewCountByMovieId = reviewCounts;
     }
 
     private void FlashSaleVm_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(FlashSaleViewModel.IsActive))
+        {
             return;
+        }
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            ApplyCatalogDeactivation(_flashSaleVm?.IsActive ?? false);
-            if (_flashSaleVm?.IsActive ?? false)
+            ApplyCatalogDeactivation(flashSaleVm?.IsActive ?? false);
+            if (flashSaleVm?.IsActive ?? false)
             {
                 LoadDiscountedMovies();
                 ApplyFilterAndSort();
@@ -172,7 +206,7 @@ public sealed partial class MovieCatalogPage : Page
         }
 
         MoviesGrid.ItemsSource = null;
-        _sourceMovies = new List<Movie>();
+        sourceMovies = new List<Movie>();
         FlashSaleEndedText.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         MoviesGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
     }

@@ -11,8 +11,8 @@ namespace MovieShop
 {
     internal static class Helpers
     {
-        public static string GetExecutionDirectory() => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        public static string GetExecutionDirectory() => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) !;
 
-        public static string GetProjectDirectory() => Regex.Replace(GetExecutionDirectory(), @"\\bin.*$", "");
+        public static string GetProjectDirectory() => Regex.Replace(GetExecutionDirectory(), @"\\bin.*$", string.Empty);
     }
 }

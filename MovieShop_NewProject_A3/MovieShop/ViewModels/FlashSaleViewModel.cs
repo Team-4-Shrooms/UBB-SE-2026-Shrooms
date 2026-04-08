@@ -1,4 +1,3 @@
-﻿using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,67 +6,67 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
 
 namespace MovieShop.ViewModels
 {
     public class FlashSaleViewModel : INotifyPropertyChanged
     {
-        private DispatcherTimer _timer;
-        private string _displayText;
-        private string _timerText;
-        private DateTime _expiryDate;
-        private bool _isActive;
+        private DispatcherTimer timer;
+        private string displayText;
+        private string timerText;
+        private DateTime expiryDate;
+        private bool isActive;
 
-        private Action _onExpiredAction;
+        private Action onExpiredAction;
 
         public bool IsActive
         {
-            get => _isActive;
+            get => isActive;
             set
             {
-                _isActive = value;
+                isActive = value;
                 OnPropertyChanged();
             }
         }
 
         public string TimerText
         {
-            get => _timerText;
+            get => timerText;
             set
             {
-                _timerText = value;
+                timerText = value;
                 OnPropertyChanged();
             }
         }
 
         public string DisplayText
         {
-            get => _displayText;
+            get => displayText;
             set
             {
-                _displayText = value;
+                displayText = value;
                 OnPropertyChanged();
             }
         }
 
         public FlashSaleViewModel(DateTime saleEndTime, Action onExpired)
         {
-            _onExpiredAction = onExpired;
+            onExpiredAction = onExpired;
 
-            if(saleEndTime <= DateTime.Now)
+            if (saleEndTime <= DateTime.Now)
             {
                 IsActive = false;
                 return;
             }
 
-            _expiryDate = saleEndTime;
+            expiryDate = saleEndTime;
             IsActive = true;
 
-
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
-            _timer.Tick += TimerTick;
-            _timer.Start();
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += TimerTick;
+            timer.Start();
 
             UpdateCountdown();
         }
@@ -79,11 +78,10 @@ namespace MovieShop.ViewModels
 
         private void UpdateCountdown()
         {
-            TimeSpan timeRemaining = _expiryDate - DateTime.Now;
+            TimeSpan timeRemaining = expiryDate - DateTime.Now;
 
             if (timeRemaining.TotalSeconds > 0)
             {
-
                 DisplayText = "Flash sale";
                 TimerText = string.Format("{0:D2}:{1:D2}:{2:D2}",
                                                 (int)timeRemaining.TotalHours,
@@ -92,18 +90,18 @@ namespace MovieShop.ViewModels
             }
             else
             {
-                _timer.Stop();
+                timer.Stop();
                 DisplayText = "Flash sale has expired!";
                 TimerText = "00:00:00";
 
                 IsActive = false;
 
-                _onExpiredAction?.Invoke();
+                onExpiredAction?.Invoke();
 
-                //HandleSaleExpiry();
+                // HandleSaleExpiry();
             }
         }
-        
+
         private void HandleSaleExpiry()
         {
             Debug.WriteLine("Flash Sale has expired!");

@@ -1,20 +1,20 @@
+using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.ViewModels;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels
 {
     public class MarketplaceViewModelTests
     {
-        private readonly Mock<IEquipmentRepository> _mockRepo;
+        private readonly Mock<IEquipmentRepository> mockRepo;
 
         public MarketplaceViewModelTests()
         {
-            _mockRepo = new Mock<IEquipmentRepository>();
+            mockRepo = new Mock<IEquipmentRepository>();
         }
 
         [Fact]
@@ -26,10 +26,10 @@ namespace MovieShop.Tests.ViewModels
                 new Equipment { ID = 1, Category = "Camera" },
                 new Equipment { ID = 2, Category = "Lighting" }
             };
-            _mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
+            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
 
             // Act
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Assert
             Assert.Equal(2, viewModel.AvailableItems.Count);
@@ -39,10 +39,10 @@ namespace MovieShop.Tests.ViewModels
         public void LoadData_NullReturn_SetsEmptyList()
         {
             // Arrange
-            _mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns((List<Equipment>)null);
+            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns((List<Equipment>)null);
 
             // Act
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Assert
             Assert.Empty(viewModel.AvailableItems);
@@ -57,8 +57,8 @@ namespace MovieShop.Tests.ViewModels
                 new Equipment { ID = 1, Category = "Camera" },
                 new Equipment { ID = 2, Category = "Lighting" }
             };
-            _mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Act
             viewModel.FilterByCategory("All");
@@ -66,8 +66,8 @@ namespace MovieShop.Tests.ViewModels
 
             viewModel.FilterByCategory(null);
             Assert.Equal(2, viewModel.AvailableItems.Count);
-            
-            viewModel.FilterByCategory("");
+
+            viewModel.FilterByCategory(string.Empty);
             Assert.Equal(2, viewModel.AvailableItems.Count);
         }
 
@@ -81,8 +81,8 @@ namespace MovieShop.Tests.ViewModels
                 new Equipment { ID = 2, Category = "Lighting" },
                 new Equipment { ID = 3, Category = "Lighting" }
             };
-            _mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Act
             viewModel.FilterByCategory("Lighting");
@@ -97,7 +97,7 @@ namespace MovieShop.Tests.ViewModels
         {
             // Arrange
             SessionManager.CurrentUserID = 0;
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Act
             var message = viewModel.StatusMessage;
@@ -111,7 +111,7 @@ namespace MovieShop.Tests.ViewModels
         {
             // Arrange
             SessionManager.CurrentUserID = 1;
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Act
             var message = viewModel.StatusMessage;
@@ -119,13 +119,13 @@ namespace MovieShop.Tests.ViewModels
             // Assert
             Assert.Empty(message);
         }
-        
+
         [Fact]
         public void UserBalance_ReturnsSessionBalance()
         {
             // Arrange
             SessionManager.CurrentUserBalance = 150m;
-            var viewModel = new MarketplaceViewModel(_mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockRepo.Object);
 
             // Act
             var balance = viewModel.UserBalance;

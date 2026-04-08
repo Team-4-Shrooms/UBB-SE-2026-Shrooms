@@ -7,15 +7,15 @@ namespace MovieShop.Tests.Services
 {
     public class MoviePurchaseServiceTests
     {
-        private readonly Mock<IMovieRepository> _mockMovieRepo;
-        private readonly Mock<IActiveSalesRepository> _mockActiveSalesRepo;
-        private readonly MoviePurchaseService _service;
+        private readonly Mock<IMovieRepository> mockMovieRepo;
+        private readonly Mock<IActiveSalesRepository> mockActiveSalesRepo;
+        private readonly MoviePurchaseService service;
 
         public MoviePurchaseServiceTests()
         {
-            _mockMovieRepo = new Mock<IMovieRepository>();
-            _mockActiveSalesRepo = new Mock<IActiveSalesRepository>();
-            _service = new MoviePurchaseService(_mockMovieRepo.Object, _mockActiveSalesRepo.Object);
+            mockMovieRepo = new Mock<IMovieRepository>();
+            mockActiveSalesRepo = new Mock<IActiveSalesRepository>();
+            service = new MoviePurchaseService(mockMovieRepo.Object, mockActiveSalesRepo.Object);
         }
 
         [Fact]
@@ -23,10 +23,10 @@ namespace MovieShop.Tests.Services
         {
             // Arrange
             var movie = new Movie { ID = 1, Price = 10 };
-            _mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(true);
+            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(true);
 
             // Act
-            var props = _service.GetBuyButtonProps(movie, 1, true, 100);
+            var props = service.GetBuyButtonProps(movie, 1, true, 100);
 
             // Assert
             Assert.Equal("Owned", props.Content);
@@ -40,10 +40,10 @@ namespace MovieShop.Tests.Services
         {
             // Arrange
             var movie = new Movie { ID = 1, Price = 10 };
-            _mockMovieRepo.Setup(r => r.UserOwnsMovie(0, 1)).Returns(false);
+            mockMovieRepo.Setup(r => r.UserOwnsMovie(0, 1)).Returns(false);
 
             // Act
-            var props = _service.GetBuyButtonProps(movie, 0, false, 0);
+            var props = service.GetBuyButtonProps(movie, 0, false, 0);
 
             // Assert
             Assert.Equal("Buy movie", props.Content);
@@ -57,10 +57,10 @@ namespace MovieShop.Tests.Services
         {
             // Arrange
             var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 }; // Effective price 10
-            _mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
+            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
 
             // Act
-            var props = _service.GetBuyButtonProps(movie, 1, true, 5);
+            var props = service.GetBuyButtonProps(movie, 1, true, 5);
 
             // Assert
             Assert.Equal("Buy movie", props.Content);
@@ -74,10 +74,10 @@ namespace MovieShop.Tests.Services
         {
             // Arrange
             var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 };
-            _mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
+            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
 
             // Act
-            var props = _service.GetBuyButtonProps(movie, 1, true, 20);
+            var props = service.GetBuyButtonProps(movie, 1, true, 20);
 
             // Assert
             Assert.Equal("Buy movie", props.Content);
@@ -93,10 +93,10 @@ namespace MovieShop.Tests.Services
             var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 };
 
             // Act
-            _service.PurchaseMovie(1, movie);
+            service.PurchaseMovie(1, movie);
 
             // Assert
-            _mockMovieRepo.Verify(r => r.PurchaseMovie(1, 1, 10m), Times.Once);
+            mockMovieRepo.Verify(r => r.PurchaseMovie(1, 1, 10m), Times.Once);
         }
     }
 }

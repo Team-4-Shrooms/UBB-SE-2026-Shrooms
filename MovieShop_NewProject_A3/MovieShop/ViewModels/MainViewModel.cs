@@ -1,9 +1,9 @@
-using CommunityToolkit.Mvvm.Input;
-using MovieShop.Models;
-using MovieShop.Repositories;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.Input;
+using MovieShop.Models;
+using MovieShop.Repositories;
 
 namespace MovieShop.ViewModels
 {
@@ -13,25 +13,27 @@ namespace MovieShop.ViewModels
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-
-
-        private object _currentViewModel;
+        private object currentViewModel;
         public object CurrentViewModel
         {
-            get => _currentViewModel;
-            set { _currentViewModel = value; OnPropertyChanged(nameof(CurrentViewModel)); }
+            get => currentViewModel;
+            set
+            {
+                currentViewModel = value;
+                OnPropertyChanged(nameof(CurrentViewModel));
+            }
         }
 
         public FlashSaleViewModel FlashSaleVM { get; set; }
-        private readonly IActiveSalesRepository _salesRepo;
+        private readonly IActiveSalesRepository salesRepo;
 
-        private decimal _balance;
+        private decimal balance;
         public decimal Balance
         {
-            get => _balance;
+            get => balance;
             set
             {
-                _balance = value;
+                balance = value;
                 OnPropertyChanged(nameof(Balance));
                 OnPropertyChanged(nameof(DisplayBalance));
             }
@@ -39,12 +41,12 @@ namespace MovieShop.ViewModels
 
         public string DisplayBalance => Balance.ToString("C");
 
-        private readonly int _currentUserID = SessionManager.CurrentUserID;
-        private readonly IUserRepository _userRepo;
-        private readonly ITransactionRepository _transactionRepo;
+        private readonly int currentUserID = SessionManager.CurrentUserID;
+        private readonly IUserRepository userRepo;
+        private readonly ITransactionRepository transactionRepo;
 
-        private WalletViewModel _walletViewModel;
-        private MovieViewModel _shopViewModel;
+        private WalletViewModel walletViewModel;
+        private MovieViewModel shopViewModel;
 
         public IRelayCommand NavigateToShopCommand { get; }
         public IRelayCommand NavigateToWalletCommand { get; }
@@ -54,15 +56,19 @@ namespace MovieShop.ViewModels
 
         public MainViewModel(IUserRepository userRepo, IActiveSalesRepository salesRepo, ITransactionRepository transactionRepo)
         {
-            _userRepo = userRepo;
-            _salesRepo = salesRepo;
-            _transactionRepo = transactionRepo;
-            if (_currentUserID > 0)
-                Balance = _userRepo.GetBalance(_currentUserID);
+            this.userRepo = userRepo;
+            this.salesRepo = salesRepo;
+            this.transactionRepo = transactionRepo;
+            if (currentUserID > 0)
+            {
+                Balance = userRepo.GetBalance(currentUserID);
+            }
             else
+            {
                 Balance = 0;
+            }
 
-            var currentSales = _salesRepo.GetCurrentSales();
+            var currentSales = salesRepo.GetCurrentSales();
             var activeSale = currentSales.FirstOrDefault();
 
             DateTime expiry = activeSale?.EndTime ?? DateTime.Now;
@@ -70,17 +76,17 @@ namespace MovieShop.ViewModels
             FlashSaleVM = new FlashSaleViewModel(expiry, () =>
             {
                 System.Diagnostics.Debug.WriteLine("MainVM noticed the sale ended");
-
             });
 
             MovieShop.Services.SaleService.CurrentSale = this.FlashSaleVM;
 
-
-            _walletViewModel = new WalletViewModel(_currentUserID, Balance, _userRepo, _transactionRepo);
-            _walletViewModel.PropertyChanged += (s, e) =>
+            walletViewModel = new WalletViewModel(currentUserID, Balance, userRepo, transactionRepo);
+            walletViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(WalletViewModel.Balance))
-                    Balance = _walletViewModel.Balance;
+                {
+                    Balance = walletViewModel.Balance;
+                }
             };
 
             NavigateToShopCommand = new RelayCommand(NavigateToShop);
@@ -94,29 +100,28 @@ namespace MovieShop.ViewModels
 
         public void RefreshBalanceFromDatabase()
         {
-            if (_currentUserID <= 0)
+            if (currentUserID <= 0)
             {
                 Balance = 0;
-                _walletViewModel.Balance = 0;
+                walletViewModel.Balance = 0;
                 return;
             }
 
-            var b = _userRepo.GetBalance(_currentUserID);
+            var b = userRepo.GetBalance(currentUserID);
             Balance = b;
-            _walletViewModel.Balance = b;
+            walletViewModel.Balance = b;
         }
         public void RefreshWallet()
         {
             RefreshBalanceFromDatabase();
-            _ = _walletViewModel.LoadTransactionsAsync();
+            _ = walletViewModel.LoadTransactionsAsync();
         }
 
         private void NavigateToShop() => CurrentViewModel = "Shop";
-        private void NavigateToWallet() => CurrentViewModel = _walletViewModel;
+        private void NavigateToWallet() => CurrentViewModel = walletViewModel;
         private void NavigateToMarketplace() => CurrentViewModel = "Marketplace";
         private void NavigateToInventory() => CurrentViewModel = "Inventory";
         private void NavigateToTickets() => CurrentViewModel = "Tickets";
         private void NavigateToSales() => CurrentViewModel = "SalesPage";
-
     }
 }

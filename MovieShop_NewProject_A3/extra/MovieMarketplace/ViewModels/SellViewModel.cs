@@ -1,30 +1,30 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace MovieMarketplace.ViewModels
 {
     public class SellViewModel : INotifyPropertyChanged
     {
-        private string _newItemTitle = string.Empty;
-        private string _newItemPrice = string.Empty;
-        private string _newItemDesc = string.Empty;
+        private string newItemTitle = string.Empty;
+        private string newItemPrice = string.Empty;
+        private string newItemDesc = string.Empty;
 
         public string NewItemTitle
         {
-            get => _newItemTitle;
-            set { _newItemTitle = value; OnPropertyChanged(); }
+            get => newItemTitle;
+            set { newItemTitle = value; OnPropertyChanged(); }
         }
 
         public string NewItemPrice
         {
-            get => _newItemPrice;
-            set { _newItemPrice = value; OnPropertyChanged(); }
+            get => newItemPrice;
+            set { newItemPrice = value; OnPropertyChanged(); }
         }
 
         public string NewItemDesc
         {
-            get => _newItemDesc;
-            set { _newItemDesc = value; OnPropertyChanged(); }
+            get => newItemDesc;
+            set { newItemDesc = value; OnPropertyChanged(); }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

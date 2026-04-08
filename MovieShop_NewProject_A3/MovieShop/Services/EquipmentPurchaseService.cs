@@ -1,37 +1,39 @@
+using System;
 using MovieShop.Models;
 using MovieShop.Repositories;
-using System;
 
 namespace MovieShop.Services
 {
     public class EquipmentPurchaseService : IEquipmentPurchaseService
     {
-        private readonly IEquipmentRepository _equipmentRepo;
-        private readonly IUserRepository _userRepo;
+        private readonly IEquipmentRepository equipmentRepo;
+        private readonly IUserRepository userRepo;
 
         public EquipmentPurchaseService(IEquipmentRepository equipmentRepo, IUserRepository userRepo)
         {
-            _equipmentRepo = equipmentRepo;
-            _userRepo = userRepo;
+            this.equipmentRepo = equipmentRepo;
+            this.userRepo = userRepo;
         }
 
         public bool CanAfford(int userId, decimal price)
         {
-            var balance = _userRepo.GetBalance(userId);
+            var balance = userRepo.GetBalance(userId);
             SessionManager.CurrentUserBalance = balance;
             return balance >= price;
         }
 
         public void PurchaseEquipment(int equipmentId, int userId, decimal price, string shippingAddress)
         {
-            var balance = _userRepo.GetBalance(userId);
+            var balance = userRepo.GetBalance(userId);
             if (balance < price)
+            {
                 throw new InvalidOperationException(
                     $"Insufficient funds. Balance: {balance:C} — Price: {price:C}");
+            }
 
-            _equipmentRepo.PurchaseEquipment(equipmentId, userId, price, shippingAddress);
+            equipmentRepo.PurchaseEquipment(equipmentId, userId, price, shippingAddress);
 
-            SessionManager.CurrentUserBalance = _userRepo.GetBalance(userId);
+            SessionManager.CurrentUserBalance = userRepo.GetBalance(userId);
         }
     }
 }

@@ -1,54 +1,77 @@
-﻿using MovieShop.Models;
-using MovieShop.Repositories;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
+using MovieShop.Models;
+using MovieShop.Repositories;
 
 namespace MovieShop.ViewModels
 {
     public class SellEquipmentViewModel : INotifyPropertyChanged
     {
-        private readonly IEquipmentRepository _repo = App.Services.GetRequiredService<IEquipmentRepository>();
+        private readonly IEquipmentRepository repo = App.Services.GetRequiredService<IEquipmentRepository>();
 
-        private string _newItemTitle = string.Empty;
-        private string _newItemDesc = string.Empty;
-        private string _priceInput = string.Empty;
-        private decimal _validatedPrice;
-        private string _priceErrorMessage = string.Empty;
-        private bool _canPost;
+        private string newItemTitle = string.Empty;
+        private string newItemDesc = string.Empty;
+        private string priceInput = string.Empty;
+        private decimal validatedPrice;
+        private string priceErrorMessage = string.Empty;
+        private bool canPost;
 
         public string NewItemTitle
         {
-            get => _newItemTitle;
-            set { _newItemTitle = value; OnPropertyChanged(); ValidateForm(); }
+            get => newItemTitle;
+            set
+            {
+                newItemTitle = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
         }
 
         public string NewItemDesc
         {
-            get => _newItemDesc;
-            set { _newItemDesc = value; OnPropertyChanged(); ValidateForm(); }
+            get => newItemDesc;
+            set
+            {
+                newItemDesc = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
         }
 
         public string PriceInput
         {
-            get => _priceInput;
-            set { _priceInput = value; OnPropertyChanged(); ValidateForm(); }
+            get => priceInput;
+            set
+            {
+                priceInput = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
         }
 
         public string PriceErrorMessage
         {
-            get => _priceErrorMessage;
-            set { _priceErrorMessage = value; OnPropertyChanged(); }
+            get => priceErrorMessage;
+            set
+            {
+                priceErrorMessage = value;
+                OnPropertyChanged();
+            }
         }
 
         public bool CanPost
         {
-            get => _canPost;
-            set { _canPost = value; OnPropertyChanged(); }
+            get => canPost;
+            set
+            {
+                canPost = value;
+                OnPropertyChanged();
+            }
         }
 
-        public decimal ValidatedPrice => _validatedPrice;
+        public decimal ValidatedPrice => validatedPrice;
 
         public void SubmitListing(string? category, string? condition, string imageUrl)
         {
@@ -64,15 +87,15 @@ namespace MovieShop.ViewModels
                 Status = EquipmentStatus.Available
             };
 
-            _repo.ListItem(newItem);
+            repo.ListItem(newItem);
         }
 
         private void ValidateForm()
         {
-            bool isPriceValid = decimal.TryParse(_priceInput, out decimal result);
-            bool isTitleValid = !string.IsNullOrWhiteSpace(_newItemTitle);
+            bool isPriceValid = decimal.TryParse(priceInput, out decimal result);
+            bool isTitleValid = !string.IsNullOrWhiteSpace(newItemTitle);
 
-            if (!isPriceValid && !string.IsNullOrEmpty(_priceInput))
+            if (!isPriceValid && !string.IsNullOrEmpty(priceInput))
             {
                 PriceErrorMessage = "Please enter a valid numeric price!";
                 CanPost = false;
@@ -88,7 +111,7 @@ namespace MovieShop.ViewModels
 
             if (isPriceValid && isTitleValid)
             {
-                _validatedPrice = result;
+                validatedPrice = result;
                 PriceErrorMessage = string.Empty;
                 CanPost = true;
             }

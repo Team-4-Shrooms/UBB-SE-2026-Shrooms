@@ -1,18 +1,18 @@
-﻿using MovieShop.Models;
-using MovieShop.Repositories;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using MovieShop.Models;
+using MovieShop.Repositories;
 
 namespace MovieShop.ViewModels
 {
     public class MarketplaceViewModel : INotifyPropertyChanged
     {
-        private readonly IEquipmentRepository _repository;
+        private readonly IEquipmentRepository repository;
 
-        private List<Equipment> _allOriginalItems = new List<Equipment>();
+        private List<Equipment> allOriginalItems = new List<Equipment>();
 
         public ObservableCollection<Equipment> AvailableItems { get; set; } = new ObservableCollection<Equipment>();
 
@@ -26,23 +26,23 @@ namespace MovieShop.ViewModels
 
         public MarketplaceViewModel(IEquipmentRepository equipmentRepo)
         {
-            _repository = equipmentRepo;
+            repository = equipmentRepo;
             LoadData();
         }
 
         public void LoadData()
         {
-            var data = _repository.FetchAvailableEquipment() ?? new List<Equipment>();
-            _allOriginalItems = data;
+            var data = repository.FetchAvailableEquipment() ?? new List<Equipment>();
+            allOriginalItems = data;
 
-            UpdateDisplayList(_allOriginalItems);
+            UpdateDisplayList(allOriginalItems);
         }
 
         public void FilterByCategory(string? category)
         {
             var filtered = string.IsNullOrEmpty(category) || category == "All"
-                ? _allOriginalItems
-                : _allOriginalItems.Where(item => item.Category == category).ToList();
+                ? allOriginalItems
+                : allOriginalItems.Where(item => item.Category == category).ToList();
 
             UpdateDisplayList(filtered);
         }

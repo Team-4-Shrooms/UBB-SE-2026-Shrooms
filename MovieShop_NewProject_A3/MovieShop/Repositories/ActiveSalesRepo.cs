@@ -1,13 +1,13 @@
-using Microsoft.Data.SqlClient;
-using MovieShop.Models;
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
+using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
     public class ActiveSalesRepo : IActiveSalesRepository
     {
-        DatabaseSingleton _database = DatabaseSingleton.Instance; 
+        private DatabaseSingleton database = DatabaseSingleton.Instance;
 
         public Dictionary<int, decimal> GetBestDiscountPercentByMovieId()
         {
@@ -15,9 +15,11 @@ namespace MovieShop.Repositories
             foreach (var sale in GetCurrentSales())
             {
                 var id = sale.Movie.ID;
-                var percentage = sale.DiscountPercentage; 
+                var percentage = sale.DiscountPercentage;
                 if (!map.TryGetValue(id, out var existing) || percentage > existing)
+                {
                     map[id] = percentage;
+                }
             }
 
             return map;
@@ -25,12 +27,16 @@ namespace MovieShop.Repositories
 
         public static void ApplyBestDiscountsToMovies(IReadOnlyList<Movie> movies, Dictionary<int, decimal> bestDiscountByMovieId)
         {
-            foreach (var movie in movies) 
+            foreach (var movie in movies)
             {
-                if (bestDiscountByMovieId.TryGetValue(movie.ID, out var percentage)) 
+                if (bestDiscountByMovieId.TryGetValue(movie.ID, out var percentage))
+                {
                     movie.ActiveSaleDiscountPercent = percentage;
+                }
                 else
+                {
                     movie.ActiveSaleDiscountPercent = null;
+                }
             }
         }
 
@@ -44,8 +50,8 @@ namespace MovieShop.Repositories
                             WHERE s.StartTime <= GETDATE() AND s.EndTime > GETDATE()
                             ORDER BY s.EndTime ASC";
 
-            SqlCommand command = new SqlCommand(query, _database.Connection); 
-            _database.OpenConnection();
+            SqlCommand command = new SqlCommand(query, database.Connection);
+            database.OpenConnection();
 
             using (SqlDataReader reader = command.ExecuteReader())
             {
@@ -66,7 +72,7 @@ namespace MovieShop.Repositories
                 }
             }
 
-            _database.CloseConnection();
+            database.CloseConnection();
             return sales;
         }
     }

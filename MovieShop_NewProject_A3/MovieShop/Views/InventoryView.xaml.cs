@@ -1,19 +1,19 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using MovieShop.Repositories;
 using MovieShop.Models;
+using MovieShop.Repositories;
 using MovieShop.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MovieShop.Views
 {
     public sealed partial class InventoryView : Page
     {
-        private readonly IInventoryRepository _repo = App.Services.GetRequiredService<IInventoryRepository>();
-        private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
-        private readonly IInventoryService _inventoryService = App.Services.GetRequiredService<IInventoryService>();
+        private readonly IInventoryRepository repo = App.Services.GetRequiredService<IInventoryRepository>();
+        private readonly IUserRepository userRepo = App.Services.GetRequiredService<IUserRepository>();
+        private readonly IInventoryService inventoryService = App.Services.GetRequiredService<IInventoryService>();
 
         public InventoryView()
         {
@@ -33,15 +33,18 @@ namespace MovieShop.Views
         private void InventoryView_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             var userId = SessionManager.CurrentUserID;
-            if (userId <= 0) return;
+            if (userId <= 0)
+            {
+                return;
+            }
 
-            var movies = _repo.GetOwnedMovies(userId);
+            var movies = repo.GetOwnedMovies(userId);
             MoviesGrid.ItemsSource = movies;
 
-            var tickets = _repo.GetOwnedTickets(userId);
+            var tickets = repo.GetOwnedTickets(userId);
             TicketsGrid.ItemsSource = tickets;
 
-            var equipment = _repo.GetOwnedEquipment(userId);
+            var equipment = repo.GetOwnedEquipment(userId);
             EquipmentGrid.ItemsSource = equipment;
         }
 
@@ -61,10 +64,12 @@ namespace MovieShop.Views
                     XamlRoot = XamlRoot
                 };
 
-                MoviesGrid.ItemsSource = _inventoryService.RemoveMovie(SessionManager.CurrentUserID, m.ID);
+                MoviesGrid.ItemsSource = inventoryService.RemoveMovie(SessionManager.CurrentUserID, m.ID);
 
                 if (this.XamlRoot?.Content is NavigationPage navPage)
+                {
                     navPage.ViewModel.RefreshWallet();
+                }
             }
         }
 
@@ -84,10 +89,12 @@ namespace MovieShop.Views
                     XamlRoot = XamlRoot
                 };
 
-                TicketsGrid.ItemsSource = _inventoryService.RemoveTicket(SessionManager.CurrentUserID, ev.ID);
+                TicketsGrid.ItemsSource = inventoryService.RemoveTicket(SessionManager.CurrentUserID, ev.ID);
 
                 if (this.XamlRoot?.Content is NavigationPage navPage)
+                {
                     navPage.ViewModel.RefreshWallet();
+                }
             }
         }
     }

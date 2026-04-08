@@ -8,7 +8,7 @@ namespace MovieMarketplace.Views
 {
     public sealed partial class MySalesPage : Page
     {
-        private readonly EquipmentRepository _repo = new EquipmentRepository();
+        private readonly EquipmentRepository repo = new EquipmentRepository();
         public ObservableCollection<TransactionView> Sales { get; set; } = new();
 
         public MySalesPage()
@@ -19,7 +19,7 @@ namespace MovieMarketplace.Views
 
         private void LoadSales()
         {
-            var data = _repo.FetchSellerSales(SessionManager.CurrentUserID);
+            var data = repo.FetchSellerSales(SessionManager.CurrentUserID);
             Sales.Clear();
             foreach (var item in data)
             {

@@ -1,35 +1,49 @@
-using MovieShop.Models;
-using MovieShop.Repositories;
 using System;
 using System.Collections.Generic;
+using MovieShop.Models;
+using MovieShop.Repositories;
 
 namespace MovieShop.Services
 {
 	public class InventoryService : IInventoryService
 	{
-		private readonly IInventoryRepository _inventoryRepo;
+		private readonly IInventoryRepository inventoryRepo;
 
 		public InventoryService(IInventoryRepository inventoryRepo)
 		{
-			_inventoryRepo = inventoryRepo;
+			this.inventoryRepo = inventoryRepo;
 		}
 
 		public IEnumerable<Movie> RemoveMovie(int userId, int movieId)
 		{
-			if (userId <= 0) throw new ArgumentException("Invalid user ID.", nameof(userId));
-			if (movieId <= 0) throw new ArgumentException("Invalid movie ID.", nameof(movieId));
+			if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.", nameof(userId));
+            }
 
-			_inventoryRepo.RemoveOwnedMovie(userId, movieId);
-			return _inventoryRepo.GetOwnedMovies(userId);
+            if (movieId <= 0)
+            {
+                throw new ArgumentException("Invalid movie ID.", nameof(movieId));
+            }
+
+            inventoryRepo.RemoveOwnedMovie(userId, movieId);
+			return inventoryRepo.GetOwnedMovies(userId);
 		}
 
 		public IEnumerable<MovieEvent> RemoveTicket(int userId, int eventId)
 		{
-			if (userId <= 0) throw new ArgumentException("Invalid user ID.", nameof(userId));
-			if (eventId <= 0) throw new ArgumentException("Invalid event ID.", nameof(eventId));
+			if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.", nameof(userId));
+            }
 
-			_inventoryRepo.RemoveOwnedTicket(userId, eventId);
-			return _inventoryRepo.GetOwnedTickets(userId);
+            if (eventId <= 0)
+            {
+                throw new ArgumentException("Invalid event ID.", nameof(eventId));
+            }
+
+            inventoryRepo.RemoveOwnedTicket(userId, eventId);
+			return inventoryRepo.GetOwnedTickets(userId);
 		}
 	}
 }

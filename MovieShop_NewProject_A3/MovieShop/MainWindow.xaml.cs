@@ -11,14 +11,12 @@ namespace MovieShop
             this.InitializeComponent();
 
             this.Content = new MovieShop.Views.NavigationPage();
-
         }
 
         public void ShowMovieShopPage()
         {
-            GlobalSaleBanner.Visibility=Visibility.Visible;
+            GlobalSaleBanner.Visibility = Visibility.Visible;
             MainContentArea.Content = new MovieShopView();
         }
-       
     }
 }

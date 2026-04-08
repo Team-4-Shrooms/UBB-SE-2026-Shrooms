@@ -1,8 +1,8 @@
-﻿using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using MovieShop.Models;
 using MovieShop.Repositories;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MovieShop.ViewModels
 {
@@ -12,49 +12,73 @@ namespace MovieShop.ViewModels
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
-        private int _currentUserID;
+        private readonly IUserRepository userRepo = App.Services.GetRequiredService<IUserRepository>();
+        private int currentUserID;
 
-        private Transaction _transaction;
+        private Transaction transaction;
         public Transaction Transaction
         {
-            get => _transaction;
-            set { _transaction = value; OnPropertyChanged(nameof(Transaction)); }
+            get => transaction;
+            set
+            {
+                transaction = value;
+                OnPropertyChanged(nameof(Transaction));
+            }
         }
 
-        private decimal _sellerBalance;
+        private decimal sellerBalance;
         public decimal SellerBalance
         {
-            get => _sellerBalance;
-            set { _sellerBalance = value; OnPropertyChanged(nameof(SellerBalance)); }
+            get => sellerBalance;
+            set
+            {
+                sellerBalance = value;
+                OnPropertyChanged(nameof(SellerBalance));
+            }
         }
 
-        private string _errorMessage = string.Empty;
+        private string errorMessage = string.Empty;
         public string ErrorMessage
         {
-            get => _errorMessage;
-            set { _errorMessage = value; OnPropertyChanged(nameof(ErrorMessage)); }
+            get => errorMessage;
+            set
+            {
+                errorMessage = value;
+                OnPropertyChanged(nameof(ErrorMessage));
+            }
         }
 
-        private string _successMessage = string.Empty;
+        private string successMessage = string.Empty;
         public string SuccessMessage
         {
-            get => _successMessage;
-            set { _successMessage = value; OnPropertyChanged(nameof(SuccessMessage)); }
+            get => successMessage;
+            set
+            {
+                successMessage = value;
+                OnPropertyChanged(nameof(SuccessMessage));
+            }
         }
 
-        private bool _isConfirmButtonVisible;
+        private bool isConfirmButtonVisible;
         public bool IsConfirmButtonVisible
         {
-            get => _isConfirmButtonVisible;
-            set { _isConfirmButtonVisible = value; OnPropertyChanged(nameof(IsConfirmButtonVisible)); }
+            get => isConfirmButtonVisible;
+            set
+            {
+                isConfirmButtonVisible = value;
+                OnPropertyChanged(nameof(IsConfirmButtonVisible));
+            }
         }
 
-        private bool _isSuccessVisible;
+        private bool isSuccessVisible;
         public bool IsSuccessVisible
         {
-            get => _isSuccessVisible;
-            set { _isSuccessVisible = value; OnPropertyChanged(nameof(IsSuccessVisible)); }
+            get => isSuccessVisible;
+            set
+            {
+                isSuccessVisible = value;
+                OnPropertyChanged(nameof(IsSuccessVisible));
+            }
         }
 
         public IRelayCommand ConfirmReceiptCommand { get; }
@@ -62,9 +86,9 @@ namespace MovieShop.ViewModels
 
         public ConfirmReceiptViewModel(int userID, Transaction transaction, decimal sellerBalance)
         {
-            _currentUserID = userID;
-            _transaction = transaction;
-            _sellerBalance = sellerBalance;
+            currentUserID = userID;
+            this.transaction = transaction;
+            this.sellerBalance = sellerBalance;
 
             IsConfirmButtonVisible = transaction.Status == "Pending";
 
@@ -88,7 +112,7 @@ namespace MovieShop.ViewModels
                 return;
             }
 
-            if (Transaction.BuyerID.ID != _currentUserID)
+            if (Transaction.BuyerID.ID != currentUserID)
             {
                 ErrorMessage = "Only the buyer can confirm receipt.";
                 return;
@@ -104,11 +128,14 @@ namespace MovieShop.ViewModels
 
         private void ReleaseEscrowToSeller()
         {
-            if (Transaction.SellerID == null) return;
+            if (Transaction.SellerID == null)
+            {
+                return;
+            }
 
-            var currentBalance = _userRepo.GetBalance(Transaction.SellerID.ID);
+            var currentBalance = userRepo.GetBalance(Transaction.SellerID.ID);
             var newBalance = currentBalance + Transaction.Amount;
-            _userRepo.UpdateBalance(Transaction.SellerID.ID, newBalance);
+            userRepo.UpdateBalance(Transaction.SellerID.ID, newBalance);
             SellerBalance = newBalance;
         }
 

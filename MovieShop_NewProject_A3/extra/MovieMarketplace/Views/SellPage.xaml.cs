@@ -13,13 +13,13 @@ namespace MovieMarketplace.Views
 {
     public class SellViewModel : INotifyPropertyChanged
     {
-        private string _newItemTitle = string.Empty;
-        private string _newItemPrice = string.Empty;
-        private string _newItemDesc = string.Empty;
+        private string newItemTitle = string.Empty;
+        private string newItemPrice = string.Empty;
+        private string newItemDesc = string.Empty;
 
-        public string NewItemTitle { get => _newItemTitle; set { _newItemTitle = value; OnPropertyChanged(); } }
-        public string NewItemPrice { get => _newItemPrice; set { _newItemPrice = value; OnPropertyChanged(); } }
-        public string NewItemDesc { get => _newItemDesc; set { _newItemDesc = value; OnPropertyChanged(); } }
+        public string NewItemTitle { get => newItemTitle; set { newItemTitle = value; OnPropertyChanged(); } }
+        public string NewItemPrice { get => newItemPrice; set { newItemPrice = value; OnPropertyChanged(); } }
+        public string NewItemDesc { get => newItemDesc; set { newItemDesc = value; OnPropertyChanged(); } }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
@@ -28,9 +28,9 @@ namespace MovieMarketplace.Views
 
     public sealed partial class SellPage : Page
     {
-        private readonly EquipmentRepository _repo = new EquipmentRepository();
+        private readonly EquipmentRepository repo = new EquipmentRepository();
         public SellViewModel ViewModel { get; set; } = new SellViewModel();
-        private string _selectedLocalPath = string.Empty;
+        private string selectedLocalPath = string.Empty;
 
         public SellPage()
         {
@@ -52,7 +52,7 @@ namespace MovieMarketplace.Views
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                _selectedLocalPath = file.Path;
+                selectedLocalPath = file.Path;
                 FileNameLabel.Text = $"Selected: {file.Name}";
             }
         }
@@ -86,13 +86,13 @@ namespace MovieMarketplace.Views
                     Title = ViewModel.NewItemTitle,
                     Description = ViewModel.NewItemDesc,
                     Price = validatedPrice,
-                    ImageUrl = !string.IsNullOrEmpty(_selectedLocalPath) ? _selectedLocalPath : (ImageUrlInput.Text ?? ""),
+                    ImageUrl = !string.IsNullOrEmpty(selectedLocalPath) ? selectedLocalPath : (ImageUrlInput.Text ?? ""),
                     Status = EquipmentStatus.Available,
                     Category = (CategoryInput.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "",
                     Condition = (ConditionInput.SelectedItem as ComboBoxItem)?.Content.ToString() ?? ""
                 };
 
-                _repo.AddEquipment(newEquip);
+                repo.AddEquipment(newEquip);
 
                 ContentDialog success = new ContentDialog
                 {

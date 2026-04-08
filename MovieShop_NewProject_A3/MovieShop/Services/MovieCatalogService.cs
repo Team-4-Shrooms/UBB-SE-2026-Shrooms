@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,30 +10,29 @@ namespace MovieShop.Services
 {
     public class MovieCatalogService : IMovieCatalogService
     {
-        private readonly IMovieRepository _movieRepo;
-        private readonly IActiveSalesRepository _salesRepo;
-        private readonly IMovieReviewService _reviewService;
+        private readonly IMovieRepository movieRepo;
+        private readonly IActiveSalesRepository salesRepo;
+        private readonly IMovieReviewService reviewService;
         public MovieCatalogService(IMovieRepository movieRepo, IActiveSalesRepository activeSalesRepo, IMovieReviewService reviewService)
         {
-            _movieRepo = movieRepo;
-            _salesRepo = activeSalesRepo;
-            _reviewService = reviewService;
-
+            this.movieRepo = movieRepo;
+            salesRepo = activeSalesRepo;
+            this.reviewService = reviewService;
         }
         public void ApplyDiscount(Movie movie)
         {
-            var discountMap = _salesRepo.GetBestDiscountPercentByMovieId();
+            var discountMap = salesRepo.GetBestDiscountPercentByMovieId();
             ActiveSalesRepo.ApplyBestDiscountsToMovies(new List<Movie> { movie }, discountMap);
         }
 
         public (List<Movie> Movies, Dictionary<int, int> ReviewCounts) GetUndiscountedMovies()
         {
-            var all = _movieRepo.GetAllMovies();
+            var all = movieRepo.GetAllMovies();
 
-            var discountMap = _salesRepo.GetBestDiscountPercentByMovieId();
+            var discountMap = salesRepo.GetBestDiscountPercentByMovieId();
             ActiveSalesRepo.ApplyBestDiscountsToMovies(all, discountMap);
 
-            var onSaleIds = _salesRepo.GetCurrentSales()
+            var onSaleIds = salesRepo.GetCurrentSales()
                                      .Select(s => s.Movie.ID)
                                      .Distinct()
                                      .ToHashSet();
@@ -42,7 +41,7 @@ namespace MovieShop.Services
                 .Where(m => !onSaleIds.Contains(m.ID))
                 .ToList();
 
-            var reviewCounts = _reviewService
+            var reviewCounts = reviewService
                 .GetReviewCounts(undiscounted.Select(m => m.ID));
 
             return (undiscounted, reviewCounts);
@@ -50,12 +49,12 @@ namespace MovieShop.Services
 
         public (List<Movie> Movies, Dictionary<int, int> ReviewCounts) GetDiscountedMovies()
         {
-            var all = _movieRepo.GetAllMovies();
+            var all = movieRepo.GetAllMovies();
 
-            var discountMap = _salesRepo.GetBestDiscountPercentByMovieId();
+            var discountMap = salesRepo.GetBestDiscountPercentByMovieId();
             ActiveSalesRepo.ApplyBestDiscountsToMovies(all, discountMap);
 
-            var onSaleIds = _salesRepo.GetCurrentSales()
+            var onSaleIds = salesRepo.GetCurrentSales()
                                      .Select(s => s.Movie.ID)
                                      .Distinct()
                                      .ToHashSet();
@@ -64,11 +63,10 @@ namespace MovieShop.Services
                 .Where(m => onSaleIds.Contains(m.ID))
                 .ToList();
 
-            var reviewCounts = _reviewService
+            var reviewCounts = reviewService
                 .GetReviewCounts(discounted.Select(m => m.ID));
 
             return (discounted, reviewCounts);
         }
-
     }
 }

@@ -1,35 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.UI.Xaml;
 
 namespace MovieShop.Views;
 
 public sealed partial class MovieEventsPage : Page
 {
-    private Movie? _movie;
-    private List<MovieEvent>? _allEvents;
-    private readonly IEventRepository _eventRepo = App.Services.GetRequiredService<IEventRepository>();
-    private readonly IUserRepository _userRepo = App.Services.GetRequiredService<IUserRepository>();
-    private readonly IEventTicketService _ticketService = App.Services.GetRequiredService<IEventTicketService>();
+    private Movie? movie;
+    private List<MovieEvent>? allEvents;
+    private readonly IEventRepository eventRepo = App.Services.GetRequiredService<IEventRepository>();
+    private readonly IUserRepository userRepo = App.Services.GetRequiredService<IUserRepository>();
+    private readonly IEventTicketService ticketService = App.Services.GetRequiredService<IEventTicketService>();
 
     private static object? FindDescendantByName(DependencyObject parent, string name)
     {
-        if (parent == null) return null;
+        if (parent == null)
+        {
+            return null;
+        }
+
         var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(parent);
         for (int i = 0; i < count; i++)
         {
             var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
             if (child is FrameworkElement fe && fe.Name == name)
+            {
                 return fe;
+            }
+
             var found = FindDescendantByName(child, name);
-            if (found != null) return found;
+            if (found != null)
+            {
+                return found;
+            }
         }
         return null;
     }
@@ -45,8 +55,8 @@ public sealed partial class MovieEventsPage : Page
         if (EventsList.ItemsSource == null)
         {
             TitleBlock.Text = "Events";
-            _allEvents = _eventRepo.GetAllEvents();
-            EventsList.ItemsSource = _allEvents;
+            allEvents = eventRepo.GetAllEvents();
+            EventsList.ItemsSource = allEvents;
             UpdateBuyButtons();
         }
     }
@@ -57,22 +67,31 @@ public sealed partial class MovieEventsPage : Page
 
     private void ApplyFilters()
     {
-        if (_allEvents == null) return;
+        if (allEvents == null)
+        {
+            return;
+        }
 
-        var filtered = _allEvents.AsEnumerable();
+        var filtered = allEvents.AsEnumerable();
 
         var search = SearchBox?.Text?.Trim();
         if (!string.IsNullOrWhiteSpace(search))
+        {
             filtered = filtered.Where(ev =>
-                (ev.Title ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                (ev.Description ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                (ev.Location ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+                (ev.Title ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                (ev.Description ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                (ev.Location ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
 
         var sel = (FilterCombo?.SelectedItem as ComboBoxItem)?.Content as string ?? "All";
         if (sel == "Upcoming")
+        {
             filtered = filtered.Where(ev => ev.Date >= DateTime.Now);
+        }
         else if (sel == "Past")
+        {
             filtered = filtered.Where(ev => ev.Date < DateTime.Now);
+        }
 
         EventsList.ItemsSource = filtered.ToList();
         UpdateBuyButtons();
@@ -85,12 +104,19 @@ public sealed partial class MovieEventsPage : Page
         foreach (var item in EventsList.Items)
         {
             var lvi = EventsList.ContainerFromItem(item) as ListViewItem;
-            if (lvi == null) continue;
+            if (lvi == null)
+            {
+                continue;
+            }
+
             var btn = FindDescendantByName(lvi, "BuyTicketButton") as Button;
-            if (btn == null) continue;
+            if (btn == null)
+            {
+                continue;
+            }
 
             var ev = item as MovieEvent;
-            var canBuy = ev != null && _ticketService.CanBuyTicket(userId, ev);
+            var canBuy = ev != null && ticketService.CanBuyTicket(userId, ev);
             btn.IsEnabled = canBuy;
             btn.Opacity = canBuy ? 1.0 : 0.55;
         }
@@ -100,32 +126,39 @@ public sealed partial class MovieEventsPage : Page
     {
         base.OnNavigatedTo(e);
 
-        if (e.Parameter is not MovieEventsNavArgs args) return;
-
-        _movie = args.Movie;
-        if (_movie == null)
+        if (e.Parameter is not MovieEventsNavArgs args)
         {
-            TitleBlock.Text = "Events";
-            _allEvents = _eventRepo.GetAllEvents();
-            EventsList.ItemsSource = _allEvents;
             return;
         }
 
-        TitleBlock.Text = $"Events - {_movie.Title}";
-        _allEvents = _eventRepo.GetEventsForMovie(_movie.ID);
-        EventsList.ItemsSource = _allEvents;
+        movie = args.Movie;
+        if (movie == null)
+        {
+            TitleBlock.Text = "Events";
+            allEvents = eventRepo.GetAllEvents();
+            EventsList.ItemsSource = allEvents;
+            return;
+        }
+
+        TitleBlock.Text = $"Events - {movie.Title}";
+        allEvents = eventRepo.GetEventsForMovie(movie.ID);
+        EventsList.ItemsSource = allEvents;
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
         if (Frame?.CanGoBack == true)
+        {
             Frame.GoBack();
+        }
     }
 
     private async void BuyTicket_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement fe || fe.DataContext is not MovieEvent me)
+        {
             return;
+        }
 
         if (!SessionManager.IsLoggedIn)
         {
@@ -139,12 +172,14 @@ public sealed partial class MovieEventsPage : Page
             };
 
             if (await dlg.ShowAsync() != ContentDialogResult.Primary)
+            {
                 return;
+            }
 
             SessionManager.CurrentUserID = 1;
             try
             {
-                SessionManager.CurrentUserBalance = _userRepo.GetBalance(1);
+                SessionManager.CurrentUserBalance = userRepo.GetBalance(1);
             }
             catch (Exception ex)
             {
@@ -159,7 +194,7 @@ public sealed partial class MovieEventsPage : Page
         try
         {
             await System.Threading.Tasks.Task.Run(() =>
-                _ticketService.PurchaseTicket(SessionManager.CurrentUserID, me));
+                ticketService.PurchaseTicket(SessionManager.CurrentUserID, me));
 
             UpdateBuyButtons();
 

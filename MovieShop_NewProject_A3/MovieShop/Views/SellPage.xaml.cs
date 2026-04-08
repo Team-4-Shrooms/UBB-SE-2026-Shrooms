@@ -1,9 +1,9 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.ViewModels;
-using System;
-using Windows.Storage.Pickers;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using WinRT.Interop;
 
 namespace MovieShop.Views
@@ -11,7 +11,7 @@ namespace MovieShop.Views
     public sealed partial class SellPage : Page
     {
         public SellEquipmentViewModel ViewModel { get; set; } = new SellEquipmentViewModel();
-        private string _selectedLocalPath = string.Empty;
+        private string selectedLocalPath = string.Empty;
 
         public SellPage()
         {
@@ -22,9 +22,9 @@ namespace MovieShop.Views
         {
             var picker = new FileOpenPicker();
 
-            if (App._window != null)
+            if (App.CurrentWindow != null)
             {
-                var hwnd = WindowNative.GetWindowHandle(App._window);
+                var hwnd = WindowNative.GetWindowHandle(App.CurrentWindow);
                 InitializeWithWindow.Initialize(picker, hwnd);
             }
 
@@ -37,7 +37,7 @@ namespace MovieShop.Views
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                _selectedLocalPath = file.Path;
+                selectedLocalPath = file.Path;
                 FileNameLabel.Text = $"Selected: {file.Name}";
             }
         }
@@ -48,13 +48,15 @@ namespace MovieShop.Views
             {
                 var category = (CategoryInput.SelectedItem as ComboBoxItem)?.Content.ToString();
                 var condition = (ConditionInput.SelectedItem as ComboBoxItem)?.Content.ToString();
-                var imageUrl = !string.IsNullOrEmpty(_selectedLocalPath) ? _selectedLocalPath : ImageUrlInput.Text;
+                var imageUrl = !string.IsNullOrEmpty(selectedLocalPath) ? selectedLocalPath : ImageUrlInput.Text;
 
                 ViewModel.SubmitListing(category, condition, imageUrl);
 
                 if (this.Parent is ContentControl contentArea)
+                {
                     contentArea.Content = new StartPageEquipment();
-            } 
+                }
+            }
             catch (ArgumentException ex)
             {
                 var dlg = new ContentDialog
@@ -83,7 +85,9 @@ namespace MovieShop.Views
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.Parent is ContentControl contentArea)
+            {
                 contentArea.Content = new StartPageEquipment();
+            }
         }
     }
 }
