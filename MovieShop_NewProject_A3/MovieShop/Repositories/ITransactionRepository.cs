@@ -8,5 +8,7 @@ namespace MovieShop.Repositories
         void LogTransaction(Transaction transaction);
 
         List<Transaction> GetTransactionsByUserId(int userId);
+
+        void UpdateTransactionStatus(int transactionId, string newStatus);
     }
 }

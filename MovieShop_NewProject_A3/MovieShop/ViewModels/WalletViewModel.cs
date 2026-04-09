@@ -165,9 +165,9 @@ namespace MovieShop.ViewModels
                 var result = await Task.Run(() => transactionRepo.GetTransactionsByUserId(currentUserID));
 
                 Transactions.Clear();
-                foreach (var t in result)
+                foreach (var transaction in result)
                 {
-                    Transactions.Add(t);
+                    Transactions.Add(transaction);
                 }
             }
             catch (System.Exception ex)
@@ -198,11 +198,11 @@ namespace MovieShop.ViewModels
 
         private void SortTransactions()
         {
-            var sorted = Transactions.OrderByDescending(t => t.Timestamp).ToList();
+            var sorted = Transactions.OrderByDescending(transaction => transaction.Timestamp).ToList();
             Transactions.Clear();
-            foreach (var t in sorted)
+            foreach (var transaction in sorted)
             {
-                Transactions.Add(t);
+                Transactions.Add(transaction);
             }
         }
 

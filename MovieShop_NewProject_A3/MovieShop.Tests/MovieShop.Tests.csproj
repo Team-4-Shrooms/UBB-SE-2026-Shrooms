@@ -1,34 +1,52 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <UseWinUI>true</UseWinUI>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>SA0001</NoWarn>
+<PropertyGroup>
+	<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+	<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+	<UseWinUI>false</UseWinUI>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<IsPackable>false</IsPackable>
+	<CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+	<NoWarn>SA0001</NoWarn>
+	<Platforms>x64</Platforms>
+	<PlatformTarget>x64</PlatformTarget>
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+	<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+	<WindowsAppSdkBootstrapExternalLocation>true</WindowsAppSdkBootstrapExternalLocation>
+	<WindowsPackageType>None</WindowsPackageType>
+	<IsTestProject>true</IsTestProject>
+	<EnableMsixTooling>false</EnableMsixTooling>
+	<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705">
+		<ExcludeAssets>all</ExcludeAssets>
+	</PackageReference>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MovieShop\MovieShop.csproj" />
-  </ItemGroup>
+<ItemGroup>
+	<ProjectReference Include="..\MovieShop\MovieShop.csproj">
+		<Properties>EnableMsixTooling=false</Properties>
+	</ProjectReference>
+</ItemGroup>
 
 </Project>

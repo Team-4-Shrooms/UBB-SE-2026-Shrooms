@@ -173,7 +173,7 @@ namespace MovieShop.Repositories
                 return;
             }
 
-            var ids = movies.Select(m => m.ID).Distinct().ToList();
+            var ids = movies.Select(movie => movie.ID).Distinct().ToList();
 
             var paramNames = ids.Select((_, i) => $"@id{i}").ToArray();
             var inClause = string.Join(",", paramNames);
@@ -199,9 +199,9 @@ namespace MovieShop.Repositories
                 while (reader.Read())
                 {
                     int movieId = reader.GetInt32(0);
-                    double avg = reader.IsDBNull(1) ? 0 : reader.GetDouble(1);
+                    double averageRating = reader.IsDBNull(1) ? 0 : reader.GetDouble(1);
 
-                    ratings[movieId] = avg;
+                    ratings[movieId] = averageRating;
                 }
             }
             finally
@@ -209,15 +209,15 @@ namespace MovieShop.Repositories
                 db.CloseConnection();
             }
 
-            foreach (var m in movies)
+            foreach (var movie in movies)
             {
-                if (ratings.TryGetValue(m.ID, out var avg))
+                if (ratings.TryGetValue(movie.ID, out var averageRating))
                 {
-                    m.Rating = avg;
+                    movie.Rating = averageRating;
                 }
                 else
                 {
-                    m.Rating = 0;
+                    movie.Rating = 0;
                 }
             }
         }

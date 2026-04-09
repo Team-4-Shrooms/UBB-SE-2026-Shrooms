@@ -30,9 +30,9 @@ public sealed partial class MovieEventsPage : Page
         for (int i = 0; i < count; i++)
         {
             var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
-            if (child is FrameworkElement fe && fe.Name == name)
+            if (child is FrameworkElement frameworkElement && frameworkElement.Name == name)
             {
-                return fe;
+                return frameworkElement;
             }
 
             var found = FindDescendantByName(child, name);
@@ -72,28 +72,10 @@ public sealed partial class MovieEventsPage : Page
             return;
         }
 
-        var filtered = allEvents.AsEnumerable();
+        var searchQuery = SearchBox?.Text?.Trim() ?? string.Empty;
+        var dateFilter = (FilterCombo?.SelectedItem as ComboBoxItem)?.Content as string ?? "All";
 
-        var search = SearchBox?.Text?.Trim();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            filtered = filtered.Where(ev =>
-                (ev.Title ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                (ev.Description ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                (ev.Location ?? string.Empty).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-
-        var sel = (FilterCombo?.SelectedItem as ComboBoxItem)?.Content as string ?? "All";
-        if (sel == "Upcoming")
-        {
-            filtered = filtered.Where(ev => ev.Date >= DateTime.Now);
-        }
-        else if (sel == "Past")
-        {
-            filtered = filtered.Where(ev => ev.Date < DateTime.Now);
-        }
-
-        EventsList.ItemsSource = filtered.ToList();
+        EventsList.ItemsSource = ticketService.FilterEvents(allEvents, searchQuery, dateFilter);
         UpdateBuyButtons();
     }
 
@@ -115,10 +97,10 @@ public sealed partial class MovieEventsPage : Page
                 continue;
             }
 
-            var ev = item as MovieEvent;
-            var canBuy = ev != null && ticketService.CanBuyTicket(userId, ev);
+            var movieEvent = item as MovieEvent;
+            var canBuy = movieEvent != null && ticketService.CanBuyTicket(userId, movieEvent);
             btn.IsEnabled = canBuy;
-            btn.Opacity = canBuy ? 1.0 : 0.55;
+            btn.Opacity = canBuy ? UIConstants.EnabledButtonOpacity : UIConstants.DisabledButtonOpacity;
         }
     }
 
@@ -155,7 +137,7 @@ public sealed partial class MovieEventsPage : Page
 
     private async void BuyTicket_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement fe || fe.DataContext is not MovieEvent me)
+        if (sender is not FrameworkElement element || element.DataContext is not MovieEvent selectedEvent)
         {
             return;
         }
@@ -194,14 +176,14 @@ public sealed partial class MovieEventsPage : Page
         try
         {
             await System.Threading.Tasks.Task.Run(() =>
-                ticketService.PurchaseTicket(SessionManager.CurrentUserID, me));
+                ticketService.PurchaseTicket(SessionManager.CurrentUserID, selectedEvent));
 
             UpdateBuyButtons();
 
             var dialog = new ContentDialog
             {
                 Title = "Purchase successful",
-                Content = $"Ticket for '{me.Title}' purchased and added to your library.",
+                Content = $"Ticket for '{selectedEvent.Title}' purchased and added to your library.",
                 CloseButtonText = "OK",
                 XamlRoot = XamlRoot
             };

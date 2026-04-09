@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,9 +25,9 @@ namespace MovieShop.Views
 
         private void MoviesGrid_ItemClick(object sender, ItemClickEventArgs e)
         {
-            if (e.ClickedItem is Movie m)
+            if (e.ClickedItem is Movie movie)
             {
-                Frame?.Navigate(typeof(MovieDetailPage), new MovieDetailNavArgs { Movie = m, MainViewModel = null! });
+                Frame?.Navigate(typeof(MovieDetailPage), new MovieDetailNavArgs { Movie = movie, MainViewModel = null! });
             }
         }
 
@@ -53,18 +54,23 @@ namespace MovieShop.Views
 
         private async Task RemoveMovieAsync(object sender)
         {
-            if (sender is Microsoft.UI.Xaml.FrameworkElement fe && fe.DataContext is Movie m)
+            if (sender is Microsoft.UI.Xaml.FrameworkElement element && element.DataContext is Movie movie)
             {
                 var dlg = new ContentDialog
                 {
                     Title = "Remove movie",
-                    Content = $"Are you sure you want to remove '{m.Title}' from your library? This will allow you to purchase it again.",
+                    Content = $"Are you sure you want to remove '{movie.Title}' from your library? This will allow you to purchase it again.",
                     PrimaryButtonText = "Remove",
                     CloseButtonText = "Cancel",
                     XamlRoot = XamlRoot
                 };
 
-                MoviesGrid.ItemsSource = inventoryService.RemoveMovie(SessionManager.CurrentUserID, m.ID);
+                if (await dlg.ShowAsync() != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+
+                MoviesGrid.ItemsSource = inventoryService.RemoveMovie(SessionManager.CurrentUserID, movie.ID);
 
                 if (this.XamlRoot?.Content is NavigationPage navPage)
                 {
@@ -78,18 +84,23 @@ namespace MovieShop.Views
 
         private async Task RemoveTicketAsync(object sender)
         {
-            if (sender is Microsoft.UI.Xaml.FrameworkElement fe && fe.DataContext is MovieEvent ev)
+            if (sender is Microsoft.UI.Xaml.FrameworkElement element && element.DataContext is MovieEvent movieEvent)
             {
                 var dlg = new ContentDialog
                 {
                     Title = "Remove ticket",
-                    Content = $"Remove your ticket for '{ev.Title}'? This will allow you to buy it again.",
+                    Content = $"Remove your ticket for '{movieEvent.Title}'? This will allow you to buy it again.",
                     PrimaryButtonText = "Remove",
                     CloseButtonText = "Cancel",
                     XamlRoot = XamlRoot
                 };
 
-                TicketsGrid.ItemsSource = inventoryService.RemoveTicket(SessionManager.CurrentUserID, ev.ID);
+                if (await dlg.ShowAsync() != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+
+                TicketsGrid.ItemsSource = inventoryService.RemoveTicket(SessionManager.CurrentUserID, movieEvent.ID);
 
                 if (this.XamlRoot?.Content is NavigationPage navPage)
                 {

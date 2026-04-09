@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -61,23 +60,11 @@ namespace MovieShop.Views
         private async void ConfirmShipping_Click(object sender, RoutedEventArgs e)
         {
             ModalErrorText.Visibility = Visibility.Collapsed;
-            string error = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(ModalNameInput.Text))
-            {
-                error += "- Name is required.\n";
-            }
-
-            if (ModalAddressInput.Text.Length < 10)
-            {
-                error += "- Address too short (min 10 chars).\n";
-            }
-
-            string phone = ModalPhoneInput.Text.Trim();
-            if (phone.Length != 10 || !phone.All(char.IsDigit))
-            {
-                error += "- Phone must be exactly 10 digits.\n";
-            }
+            string error = purchaseService.ValidateShippingDetails(
+                ModalNameInput.Text,
+                ModalAddressInput.Text,
+                ModalPhoneInput.Text);
 
             if (!string.IsNullOrEmpty(error))
             {

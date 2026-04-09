@@ -13,15 +13,16 @@ namespace MovieShop.Views
 {
     public sealed partial class MainPage : UserControl
     {
-        public ViewModels.FlashSaleViewModel? FlashSaleVM => MovieShop.Services.SaleService.CurrentSale;
+        private readonly ISaleService saleService = App.Services.GetRequiredService<ISaleService>();
+        public ViewModels.FlashSaleViewModel? FlashSaleVM => saleService.CurrentSale;
         private List<Movie> sourceMovies = new ();
         private Dictionary<int, int> reviewCountByMovieId = new ();
         private readonly IMovieCatalogService catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
 
-        private readonly SolidColorBrush hoverBorderBrush = new SolidColorBrush(Color.FromArgb(255, 29, 185, 84));
-        private readonly SolidColorBrush hoverBackgroundBrush = new SolidColorBrush(Color.FromArgb(255, 48, 48, 48));
-        private readonly SolidColorBrush defaultBorderBrush = new SolidColorBrush(Color.FromArgb(255, 64, 64, 64));
-        private readonly SolidColorBrush defaultBackgroundBrush = new SolidColorBrush(Color.FromArgb(255, 42, 42, 42));
+        private readonly SolidColorBrush hoverBorderBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBorderRed, ColorConstants.HoverBorderGreen, ColorConstants.HoverBorderBlue));
+        private readonly SolidColorBrush hoverBackgroundBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray));
+        private readonly SolidColorBrush defaultBorderBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.DefaultBorderGray, ColorConstants.DefaultBorderGray, ColorConstants.DefaultBorderGray));
+        private readonly SolidColorBrush defaultBackgroundBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.DefaultBackgroundGray, ColorConstants.DefaultBackgroundGray, ColorConstants.DefaultBackgroundGray));
 
         public MainPage()
         {
@@ -43,7 +44,7 @@ namespace MovieShop.Views
             {
                 BigSaleBanner.Visibility = Visibility.Visible;
                 BigSaleBanner.Height = double.NaN;
-                BigSaleBanner.Margin = new Thickness(0, 0, 0, 20);
+                BigSaleBanner.Margin = new Thickness(0, 0, 0, UIConstants.BannerBottomMargin);
             }
             else
             {
@@ -86,37 +87,38 @@ namespace MovieShop.Views
 
         private void ApplyFilterAndSort()
         {
-            var searchQuery = (SearchBox.Text ?? string.Empty).Trim().ToLower();
+            var searchQuery = (SearchBox.Text ?? string.Empty).Trim();
+            var sortOption = GetSelectedSortOption();
 
-            var filteredMovies = string.IsNullOrEmpty(searchQuery)
-                ? sourceMovies
-                : sourceMovies.Where(movie => movie.Title.ToLower().Contains(searchQuery));
-
-            if (SortAscPrice.IsChecked == true)
-            {
-                filteredMovies = filteredMovies.OrderBy(movie => movie.Price);
-            }
-            else if (SortDescPrice.IsChecked == true)
-            {
-                filteredMovies = filteredMovies.OrderByDescending(movie => movie.Price);
-            }
-            else if (SortHighRating.IsChecked == true)
-            {
-                filteredMovies = filteredMovies.OrderByDescending(movie => movie.Rating);
-            }
-            else if (SortLowRating.IsChecked == true)
-            {
-                filteredMovies = filteredMovies.OrderBy(movie => movie.Rating);
-            }
-            else
-            {
-                filteredMovies = filteredMovies.OrderBy(movie => movie.Title);
-            }
-
-            var orderedMovies = filteredMovies.ToList();
-            UndiscountedMoviesGrid.ItemsSource = orderedMovies
+            var sortedMovies = catalogService.FilterAndSort(sourceMovies, searchQuery, sortOption);
+            UndiscountedMoviesGrid.ItemsSource = sortedMovies
                 .Select(movie => new MovieCatalogItem(movie, reviewCountByMovieId.TryGetValue(movie.ID, out var count) ? count : 0))
                 .ToList();
+        }
+
+        private string GetSelectedSortOption()
+        {
+            if (SortAscPrice.IsChecked == true)
+            {
+                return "PriceAsc";
+            }
+
+            if (SortDescPrice.IsChecked == true)
+            {
+                return "PriceDesc";
+            }
+
+            if (SortHighRating.IsChecked == true)
+            {
+                return "RatingHigh";
+            }
+
+            if (SortLowRating.IsChecked == true)
+            {
+                return "RatingLow";
+            }
+
+            return "Title";
         }
 
         private void SortOption_Changed(object sender, RoutedEventArgs e) => ApplyFilterAndSort();
@@ -130,7 +132,7 @@ namespace MovieShop.Views
 
             border.BorderBrush = hoverBorderBrush;
             border.Background = hoverBackgroundBrush;
-            border.RenderTransform = new ScaleTransform { ScaleX = 1.03, ScaleY = 1.03 };
+            border.RenderTransform = new ScaleTransform { ScaleX = UIConstants.HoverScaleFactor, ScaleY = UIConstants.HoverScaleFactor };
         }
 
         private void MovieCard_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -142,7 +144,7 @@ namespace MovieShop.Views
 
             border.BorderBrush = defaultBorderBrush;
             border.Background = defaultBackgroundBrush;
-            border.RenderTransform = new ScaleTransform { ScaleX = 1, ScaleY = 1 };
+            border.RenderTransform = new ScaleTransform { ScaleX = UIConstants.DefaultScaleFactor, ScaleY = UIConstants.DefaultScaleFactor };
         }
 
         private void UndiscountedMoviesGrid_ItemClick(object sender, ItemClickEventArgs e)

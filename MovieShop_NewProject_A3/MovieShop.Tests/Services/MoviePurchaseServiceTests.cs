@@ -1,6 +1,7 @@
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
+using MovieShop.Services;
 using Xunit;
 
 namespace MovieShop.Tests.Services

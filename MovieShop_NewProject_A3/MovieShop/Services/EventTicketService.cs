@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MovieShop.Models;
 using MovieShop.Repositories;
 
@@ -32,6 +34,30 @@ namespace MovieShop.Services
         {
             eventRepo.PurchaseTicket(userId, movieEvent.ID);
             SessionManager.CurrentUserBalance = userRepo.GetBalance(userId);
+        }
+
+        public List<MovieEvent> FilterEvents(List<MovieEvent> events, string searchQuery, string dateFilter)
+        {
+            var filtered = events.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                filtered = filtered.Where(movieEvent =>
+                    (movieEvent.Title ?? string.Empty).IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (movieEvent.Description ?? string.Empty).IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (movieEvent.Location ?? string.Empty).IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (dateFilter == "Upcoming")
+            {
+                filtered = filtered.Where(movieEvent => movieEvent.Date >= DateTime.Now);
+            }
+            else if (dateFilter == "Past")
+            {
+                filtered = filtered.Where(movieEvent => movieEvent.Date < DateTime.Now);
+            }
+
+            return filtered.ToList();
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MovieShop.Models;
 
 namespace MovieShop.Services
@@ -7,5 +8,7 @@ namespace MovieShop.Services
         bool CanBuyTicket(int userId, MovieEvent movieEvent);
 
         void PurchaseTicket(int userId, MovieEvent movieEvent);
+
+        List<MovieEvent> FilterEvents(List<MovieEvent> events, string searchQuery, string dateFilter);
     }
 }

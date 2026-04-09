@@ -25,6 +25,7 @@ namespace MovieShop
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IDatabaseSingleton>(DatabaseSingleton.Instance);
+            services.AddSingleton<ISaleService, SaleService>();
 
             services.AddTransient<IUserRepository, UserRepo>();
             services.AddTransient<IMovieRepository, MovieRepo>();
@@ -44,6 +45,7 @@ namespace MovieShop
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<MarketplaceViewModel>();
+            services.AddTransient<SellEquipmentViewModel>();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)

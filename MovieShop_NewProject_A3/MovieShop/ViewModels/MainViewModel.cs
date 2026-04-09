@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.Input;
 using MovieShop.Models;
 using MovieShop.Repositories;
+using MovieShop.Services;
 
 namespace MovieShop.ViewModels
 {
@@ -26,6 +27,7 @@ namespace MovieShop.ViewModels
 
         public FlashSaleViewModel FlashSaleVM { get; set; }
         private readonly IActiveSalesRepository salesRepo;
+        private readonly ISaleService saleService;
 
         private decimal balance;
         public decimal Balance
@@ -46,7 +48,6 @@ namespace MovieShop.ViewModels
         private readonly ITransactionRepository transactionRepo;
 
         private WalletViewModel walletViewModel;
-        private MovieViewModel shopViewModel;
 
         public IRelayCommand NavigateToShopCommand { get; }
         public IRelayCommand NavigateToWalletCommand { get; }
@@ -54,11 +55,12 @@ namespace MovieShop.ViewModels
         public IRelayCommand NavigateToTicketsCommand { get; }
         public IRelayCommand NavigateToInventoryCommand { get; }
 
-        public MainViewModel(IUserRepository userRepo, IActiveSalesRepository salesRepo, ITransactionRepository transactionRepo)
+        public MainViewModel(IUserRepository userRepo, IActiveSalesRepository salesRepo, ITransactionRepository transactionRepo, ISaleService saleService)
         {
             this.userRepo = userRepo;
             this.salesRepo = salesRepo;
             this.transactionRepo = transactionRepo;
+            this.saleService = saleService;
             if (currentUserID > 0)
             {
                 Balance = userRepo.GetBalance(currentUserID);
@@ -78,12 +80,12 @@ namespace MovieShop.ViewModels
                 System.Diagnostics.Debug.WriteLine("MainVM noticed the sale ended");
             });
 
-            MovieShop.Services.SaleService.CurrentSale = this.FlashSaleVM;
+            saleService.CurrentSale = this.FlashSaleVM;
 
             walletViewModel = new WalletViewModel(currentUserID, Balance, userRepo, transactionRepo);
-            walletViewModel.PropertyChanged += (s, e) =>
+            walletViewModel.PropertyChanged += (sender, propertyChangedEvent) =>
             {
-                if (e.PropertyName == nameof(WalletViewModel.Balance))
+                if (propertyChangedEvent.PropertyName == nameof(WalletViewModel.Balance))
                 {
                     Balance = walletViewModel.Balance;
                 }
@@ -107,9 +109,9 @@ namespace MovieShop.ViewModels
                 return;
             }
 
-            var b = userRepo.GetBalance(currentUserID);
-            Balance = b;
-            walletViewModel.Balance = b;
+            var refreshedBalance = userRepo.GetBalance(currentUserID);
+            Balance = refreshedBalance;
+            walletViewModel.Balance = refreshedBalance;
         }
         public void RefreshWallet()
         {

@@ -35,7 +35,7 @@ public sealed class MovieCatalogItem
 
     public Microsoft.UI.Xaml.Media.SolidColorBrush PriceColor => IsOnSale
         ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.IndianRed)
-        : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 29, 185, 84));
+        : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBorderRed, ColorConstants.HoverBorderGreen, ColorConstants.HoverBorderBlue));
 
     public MovieCatalogItem(Movie movie, int reviewCount)
     {
@@ -47,6 +47,7 @@ public sealed class MovieCatalogItem
 public sealed partial class MovieCatalogPage : Page
 {
     private readonly IMovieCatalogService catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
+    private readonly ISaleService saleService = App.Services.GetRequiredService<ISaleService>();
     private List<Movie> sourceMovies = new ();
     private Dictionary<int, int> reviewCountByMovieId = new ();
     private MainViewModel? mainVm;
@@ -76,7 +77,7 @@ public sealed partial class MovieCatalogPage : Page
             flashSaleVm.PropertyChanged -= FlashSaleVm_PropertyChanged!;
         }
 
-        flashSaleVm = SaleService.CurrentSale;
+        flashSaleVm = saleService.CurrentSale;
         if (flashSaleVm != null)
         {
             flashSaleVm.PropertyChanged += FlashSaleVm_PropertyChanged!;
@@ -101,34 +102,38 @@ public sealed partial class MovieCatalogPage : Page
 
     private void ApplyFilterAndSort()
     {
-        var q = (SearchBox.Text ?? string.Empty).Trim().ToLower();
-        var list = string.IsNullOrEmpty(q) ? sourceMovies
-                                           : sourceMovies.Where(m => m.Title.ToLower().Contains(q));
+        var searchQuery = (SearchBox.Text ?? string.Empty).Trim();
+        var sortOption = GetSelectedSortOption();
 
+        var sortedMovies = catalogService.FilterAndSort(sourceMovies, searchQuery, sortOption);
+        MoviesGrid.ItemsSource = sortedMovies
+            .Select(movie => new MovieCatalogItem(movie, reviewCountByMovieId.TryGetValue(movie.ID, out var count) ? count : 0))
+            .ToList();
+    }
+
+    private string GetSelectedSortOption()
+    {
         if (SortAscPrice.IsChecked == true)
         {
-            list = list.OrderBy(m => m.Price);
-        }
-        else if (SortDescPrice.IsChecked == true)
-        {
-            list = list.OrderByDescending(m => m.Price);
-        }
-        else if (SortHighRating.IsChecked == true)
-        {
-            list = list.OrderByDescending(m => m.Rating);
-        }
-        else if (SortLowRating.IsChecked == true)
-        {
-            list = list.OrderBy(m => m.Rating);
-        }
-        else
-        {
-            list = list.OrderBy(m => m.Title);
+            return "PriceAsc";
         }
 
-        MoviesGrid.ItemsSource = list
-            .Select(m => new MovieCatalogItem(m, reviewCountByMovieId.TryGetValue(m.ID, out var c) ? c : 0))
-            .ToList();
+        if (SortDescPrice.IsChecked == true)
+        {
+            return "PriceDesc";
+        }
+
+        if (SortHighRating.IsChecked == true)
+        {
+            return "RatingHigh";
+        }
+
+        if (SortLowRating.IsChecked == true)
+        {
+            return "RatingLow";
+        }
+
+        return "Title";
     }
 
     private void MovieCard_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -138,9 +143,9 @@ public sealed partial class MovieCatalogPage : Page
             return;
         }
 
-        border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 29, 185, 84));
-        border.Background = new SolidColorBrush(Color.FromArgb(255, 48, 48, 48));
-        border.RenderTransform = new ScaleTransform { ScaleX = 1.03, ScaleY = 1.03 };
+        border.BorderBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBorderRed, ColorConstants.HoverBorderGreen, ColorConstants.HoverBorderBlue));
+        border.Background = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray));
+        border.RenderTransform = new ScaleTransform { ScaleX = UIConstants.HoverScaleFactor, ScaleY = UIConstants.HoverScaleFactor };
     }
 
     private void MovieCard_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -150,9 +155,9 @@ public sealed partial class MovieCatalogPage : Page
             return;
         }
 
-        border.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 64, 64, 64));
-        border.Background = new SolidColorBrush(Color.FromArgb(255, 42, 42, 42));
-        border.RenderTransform = new ScaleTransform { ScaleX = 1, ScaleY = 1 };
+        border.BorderBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.DefaultBorderGray, ColorConstants.DefaultBorderGray, ColorConstants.DefaultBorderGray));
+        border.Background = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.DefaultBackgroundGray, ColorConstants.DefaultBackgroundGray, ColorConstants.DefaultBackgroundGray));
+        border.RenderTransform = new ScaleTransform { ScaleX = UIConstants.DefaultScaleFactor, ScaleY = UIConstants.DefaultScaleFactor };
     }
 
     private void MoviesGrid_ItemClick(object sender, ItemClickEventArgs e)
@@ -201,7 +206,7 @@ public sealed partial class MovieCatalogPage : Page
             FlashSaleEndedText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
             MoviesGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
             MoviesGrid.IsEnabled = true;
-            MoviesGrid.Opacity = 1.0;
+            MoviesGrid.Opacity = UIConstants.EnabledButtonOpacity;
             return;
         }
 

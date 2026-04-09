@@ -33,16 +33,16 @@ namespace MovieShop.Services
             ActiveSalesRepo.ApplyBestDiscountsToMovies(all, discountMap);
 
             var onSaleIds = salesRepo.GetCurrentSales()
-                                     .Select(s => s.Movie.ID)
+                                     .Select(sale => sale.Movie.ID)
                                      .Distinct()
                                      .ToHashSet();
 
             var undiscounted = all
-                .Where(m => !onSaleIds.Contains(m.ID))
+                .Where(movie => !onSaleIds.Contains(movie.ID))
                 .ToList();
 
             var reviewCounts = reviewService
-                .GetReviewCounts(undiscounted.Select(m => m.ID));
+                .GetReviewCounts(undiscounted.Select(movie => movie.ID));
 
             return (undiscounted, reviewCounts);
         }
@@ -55,18 +55,36 @@ namespace MovieShop.Services
             ActiveSalesRepo.ApplyBestDiscountsToMovies(all, discountMap);
 
             var onSaleIds = salesRepo.GetCurrentSales()
-                                     .Select(s => s.Movie.ID)
+                                     .Select(sale => sale.Movie.ID)
                                      .Distinct()
                                      .ToHashSet();
 
             var discounted = all
-                .Where(m => onSaleIds.Contains(m.ID))
+                .Where(movie => onSaleIds.Contains(movie.ID))
                 .ToList();
 
             var reviewCounts = reviewService
-                .GetReviewCounts(discounted.Select(m => m.ID));
+                .GetReviewCounts(discounted.Select(movie => movie.ID));
 
             return (discounted, reviewCounts);
+        }
+
+        public List<Movie> FilterAndSort(List<Movie> movies, string searchQuery, string sortOption)
+        {
+            var filtered = string.IsNullOrEmpty(searchQuery)
+                ? movies.AsEnumerable()
+                : movies.Where(movie => movie.Title.ToLower().Contains(searchQuery.ToLower()));
+
+            filtered = sortOption switch
+            {
+                "PriceAsc" => filtered.OrderBy(movie => movie.Price),
+                "PriceDesc" => filtered.OrderByDescending(movie => movie.Price),
+                "RatingHigh" => filtered.OrderByDescending(movie => movie.Rating),
+                "RatingLow" => filtered.OrderBy(movie => movie.Rating),
+                _ => filtered.OrderBy(movie => movie.Title),
+            };
+
+            return filtered.ToList();
         }
     }
 }

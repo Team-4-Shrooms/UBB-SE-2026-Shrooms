@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.ViewModels;
@@ -10,7 +11,7 @@ namespace MovieShop.Views
 {
     public sealed partial class SellPage : Page
     {
-        public SellEquipmentViewModel ViewModel { get; set; } = new SellEquipmentViewModel();
+        public SellEquipmentViewModel ViewModel { get; set; } = App.Services.GetRequiredService<SellEquipmentViewModel>();
         private string selectedLocalPath = string.Empty;
 
         public SellPage()

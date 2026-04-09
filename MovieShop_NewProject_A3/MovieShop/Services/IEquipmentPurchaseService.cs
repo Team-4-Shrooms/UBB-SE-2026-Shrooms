@@ -7,5 +7,7 @@ namespace MovieShop.Services
 		bool CanAfford(int userId, decimal price);
 
 		void PurchaseEquipment(int equipmentId, int userId, decimal price, string shippingAddress);
+
+		string ValidateShippingDetails(string name, string address, string phone);
 	}
 }

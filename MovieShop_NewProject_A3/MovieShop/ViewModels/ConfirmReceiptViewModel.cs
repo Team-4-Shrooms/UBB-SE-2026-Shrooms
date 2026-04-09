@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using MovieShop.Models;
 using MovieShop.Repositories;
 
@@ -12,7 +11,8 @@ namespace MovieShop.ViewModels
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        private readonly IUserRepository userRepo = App.Services.GetRequiredService<IUserRepository>();
+        private readonly IUserRepository userRepo;
+        private readonly ITransactionRepository transactionRepo;
         private int currentUserID;
 
         private Transaction transaction;
@@ -84,8 +84,10 @@ namespace MovieShop.ViewModels
         public IRelayCommand ConfirmReceiptCommand { get; }
         public IRelayCommand DismissSuccessCommand { get; }
 
-        public ConfirmReceiptViewModel(int userID, Transaction transaction, decimal sellerBalance)
+        public ConfirmReceiptViewModel(int userID, Transaction transaction, decimal sellerBalance, IUserRepository userRepo, ITransactionRepository transactionRepo)
         {
+            this.userRepo = userRepo;
+            this.transactionRepo = transactionRepo;
             currentUserID = userID;
             this.transaction = transaction;
             this.sellerBalance = sellerBalance;
@@ -141,11 +143,9 @@ namespace MovieShop.ViewModels
 
         private void UpdateTransactionStatus(string newStatus)
         {
+            transactionRepo.UpdateTransactionStatus(Transaction.ID, newStatus);
             Transaction.Status = newStatus;
             OnPropertyChanged(nameof(Transaction));
-            System.Diagnostics.Debug.WriteLine(
-                $"[ConfirmReceiptViewModel] Status set to '{newStatus}' locally. " +
-                "Add UpdateStatus to ITransactionRepository to persist to DB.");
         }
 
         private void DismissSuccess()

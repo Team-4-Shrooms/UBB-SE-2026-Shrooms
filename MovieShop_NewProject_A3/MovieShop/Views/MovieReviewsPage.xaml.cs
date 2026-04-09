@@ -65,13 +65,13 @@ public sealed partial class MovieReviewsPage : Page
 
         while (true)
         {
-            var ratingBox = new TextBox { PlaceholderText = "1.0 - 10.0 (max 1 decimal)", Width = 240 };
-            var commentBox = new TextBox { PlaceholderText = "Comment (optional)", AcceptsReturn = true, TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap, Height = 90 };
+            var ratingBox = new TextBox { PlaceholderText = "1.0 - 10.0 (max 1 decimal)", Width = UIConstants.ReviewDialogInputWidth };
+            var commentBox = new TextBox { PlaceholderText = "Comment (optional)", AcceptsReturn = true, TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap, Height = UIConstants.ReviewDialogInputHeight };
 
-            var content = new StackPanel { Spacing = 10 };
+            var content = new StackPanel { Spacing = UIConstants.StackPanelDefaultSpacing };
             content.Children.Add(new TextBlock { Text = "Rating", Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White) });
             content.Children.Add(ratingBox);
-            content.Children.Add(new TextBlock { Text = "Comment", Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White), Margin = new Microsoft.UI.Xaml.Thickness(0, 8, 0, 0) });
+            content.Children.Add(new TextBlock { Text = "Comment", Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White), Margin = new Microsoft.UI.Xaml.Thickness(0, UIConstants.ReviewDialogLabelTopMargin, 0, 0) });
             content.Children.Add(commentBox);
 
             var dialog = new ContentDialog
@@ -118,10 +118,10 @@ public sealed partial class MovieReviewsPage : Page
         rating = 0;
         error = string.Empty;
 
-        var s = (text ?? string.Empty).Trim();
-        if (!int.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out rating))
+        var trimmedText = (text ?? string.Empty).Trim();
+        if (!int.TryParse(trimmedText, NumberStyles.Number, CultureInfo.InvariantCulture, out rating))
         {
-            if (!int.TryParse(s, NumberStyles.Number, CultureInfo.CurrentCulture, out rating))
+            if (!int.TryParse(trimmedText, NumberStyles.Number, CultureInfo.CurrentCulture, out rating))
             {
                 error = "Please enter a rating between 1 and 10.";
                 return false;

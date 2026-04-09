@@ -10,16 +10,12 @@ namespace MovieShop.Tests.ViewModels
     public class ConfirmReceiptViewModelTests
     {
         private readonly Mock<IUserRepository> mockUserRepo;
-        private readonly Mock<IServiceProvider> mockServiceProvider;
+        private readonly Mock<ITransactionRepository> mockTransactionRepo;
 
         public ConfirmReceiptViewModelTests()
         {
             mockUserRepo = new Mock<IUserRepository>();
-
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(x => x.GetService(typeof(IUserRepository))).Returns(mockUserRepo.Object);
-
-            TestServiceHelper.SetAppServices(mockServiceProvider.Object);
+            mockTransactionRepo = new Mock<ITransactionRepository>();
         }
 
         [Fact]
@@ -35,7 +31,7 @@ namespace MovieShop.Tests.ViewModels
             };
 
             mockUserRepo.Setup(r => r.GetBalance(2)).Returns(50m);
-            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
+            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             viewModel.ConfirmReceiptCommand.Execute(null);
@@ -59,7 +55,7 @@ namespace MovieShop.Tests.ViewModels
                 BuyerID = new User { ID = 3 },
             };
 
-            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
+            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             viewModel.ConfirmReceiptCommand.Execute(null);
@@ -79,7 +75,7 @@ namespace MovieShop.Tests.ViewModels
                 BuyerID = new User { ID = 1 },
             };
 
-            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
+            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             viewModel.ConfirmReceiptCommand.Execute(null);
@@ -92,7 +88,7 @@ namespace MovieShop.Tests.ViewModels
         public void ConfirmReceipt_NoTransaction_SetsErrorMessage()
         {
             // Arrange
-            var viewModel = new ConfirmReceiptViewModel(1, null, 50m);
+            var viewModel = new ConfirmReceiptViewModel(1, null, 50m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             viewModel.ConfirmReceiptCommand.Execute(null);
@@ -110,7 +106,7 @@ namespace MovieShop.Tests.ViewModels
                 Status = "Completed",
                 BuyerID = new User { ID = 1 },
             };
-            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m)
+            var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m, mockUserRepo.Object, mockTransactionRepo.Object)
             {
                 IsSuccessVisible = true,
                 SuccessMessage = "Test"

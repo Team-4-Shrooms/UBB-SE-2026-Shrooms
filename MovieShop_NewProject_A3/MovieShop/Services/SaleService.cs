@@ -1,7 +1,9 @@
-﻿namespace MovieShop.Services
+﻿using MovieShop.ViewModels;
+
+namespace MovieShop.Services
 {
-    public static class SaleService
+    public class SaleService : ISaleService
     {
-       public static ViewModels.FlashSaleViewModel? CurrentSale { get; set; }
+        public FlashSaleViewModel? CurrentSale { get; set; }
     }
 }

@@ -12,5 +12,6 @@ namespace MovieShop.Services
         void ApplyDiscount(Movie movie);
         (List<Movie> Movies, Dictionary<int, int> ReviewCounts) GetUndiscountedMovies();
         (List<Movie> Movies, Dictionary<int, int> ReviewCounts) GetDiscountedMovies();
+        List<Movie> FilterAndSort(List<Movie> movies, string searchQuery, string sortOption);
     }
 }

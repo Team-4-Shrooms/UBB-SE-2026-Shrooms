@@ -10,18 +10,11 @@ namespace MovieShop.Tests.ViewModels
     public class SellEquipmentViewModelTests
     {
         private readonly Mock<IEquipmentRepository> mockEquipmentRepo;
-        private readonly Mock<IServiceProvider> mockServiceProvider;
 
         public SellEquipmentViewModelTests()
         {
             mockEquipmentRepo = new Mock<IEquipmentRepository>();
-
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(x => x.GetService(typeof(IEquipmentRepository))).Returns(mockEquipmentRepo.Object);
-
-            TestServiceHelper.SetAppServices(mockServiceProvider.Object);
-
-            SessionManager.CurrentUserID = 1; // Ensure an active user
+            SessionManager.CurrentUserID = 1;
         }
 
         [Theory]
@@ -33,7 +26,7 @@ namespace MovieShop.Tests.ViewModels
         public void ValidateForm_VariousInputs_UpdatesCanPostAndErrors(string title, string priceInput, bool expectedCanPost, decimal expectedValidatedPrice, string expectedError)
         {
             // Arrange
-            var viewModel = new SellEquipmentViewModel();
+            var viewModel = new SellEquipmentViewModel(mockEquipmentRepo.Object);
 
             // Act
             viewModel.NewItemTitle = title;
@@ -56,7 +49,7 @@ namespace MovieShop.Tests.ViewModels
         public void SubmitListing_CanPost_SavesItemToRepository()
         {
             // Arrange
-            var viewModel = new SellEquipmentViewModel
+            var viewModel = new SellEquipmentViewModel(mockEquipmentRepo.Object)
             {
                 NewItemTitle = "Camera",
                 NewItemDesc = "Great Camera",

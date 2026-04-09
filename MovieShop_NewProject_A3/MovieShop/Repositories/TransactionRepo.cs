@@ -62,5 +62,20 @@ namespace MovieShop.Repositories
             db.CloseConnection();
             return list;
         }
+
+        public void UpdateTransactionStatus(int transactionId, string newStatus)
+        {
+            string query = "UPDATE Transactions SET Status = @status WHERE ID = @id";
+
+            db.OpenConnection();
+            using (SqlCommand cmd = new SqlCommand(query, db.Connection))
+            {
+                cmd.Parameters.AddWithValue("@status", newStatus);
+                cmd.Parameters.AddWithValue("@id", transactionId);
+                cmd.ExecuteNonQuery();
+            }
+
+            db.CloseConnection();
+        }
     }
 }

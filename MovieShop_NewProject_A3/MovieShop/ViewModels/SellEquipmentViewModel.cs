@@ -9,7 +9,12 @@ namespace MovieShop.ViewModels
 {
     public class SellEquipmentViewModel : INotifyPropertyChanged
     {
-        private readonly IEquipmentRepository repo = App.Services.GetRequiredService<IEquipmentRepository>();
+        private readonly IEquipmentRepository repo;
+
+        public SellEquipmentViewModel(IEquipmentRepository equipmentRepository)
+        {
+            this.repo = equipmentRepository;
+        }
 
         private string newItemTitle = string.Empty;
         private string newItemDesc = string.Empty;

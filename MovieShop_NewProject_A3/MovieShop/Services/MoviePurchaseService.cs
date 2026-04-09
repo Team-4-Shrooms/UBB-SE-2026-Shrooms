@@ -1,57 +1,59 @@
 using System.Collections.Generic;
 using MovieShop.Models;
 using MovieShop.Repositories;
-using MovieShop.Services;
 
-public class MoviePurchaseService : IMoviePurchaseService
+namespace MovieShop.Services
 {
-    private readonly IMovieRepository movieRepo;
-    private readonly IActiveSalesRepository activeSalesRepo;
-
-    public MoviePurchaseService(
-        IMovieRepository movieRepo,
-        IActiveSalesRepository activeSalesRepo)
+    public class MoviePurchaseService : IMoviePurchaseService
     {
-        this.movieRepo = movieRepo;
-        this.activeSalesRepo = activeSalesRepo;
-    }
+        private readonly IMovieRepository movieRepo;
+        private readonly IActiveSalesRepository activeSalesRepo;
 
-    public BuyButtonProps GetBuyButtonProps(
-        Movie movie,
-        int userId,
-        bool isLoggedIn,
-        decimal balance)
-    {
-        var owned = movieRepo.UserOwnsMovie(userId, movie.ID);
-
-        if (owned)
+        public MoviePurchaseService(
+            IMovieRepository movieRepo,
+            IActiveSalesRepository activeSalesRepo)
         {
-            return new BuyButtonProps("Owned", false, null, 1.0);
+            this.movieRepo = movieRepo;
+            this.activeSalesRepo = activeSalesRepo;
         }
 
-        if (!isLoggedIn)
+        public BuyButtonProps GetBuyButtonProps(
+            Movie movie,
+            int userId,
+            bool isLoggedIn,
+            decimal balance)
         {
-            return new BuyButtonProps(
-                "Buy movie",
-                false,
-                "You must be logged in to make a purchase.",
-                0.55);
+            var owned = movieRepo.UserOwnsMovie(userId, movie.ID);
+
+            if (owned)
+            {
+                return new BuyButtonProps("Owned", false, null, UIConstants.EnabledButtonOpacity);
+            }
+
+            if (!isLoggedIn)
+            {
+                return new BuyButtonProps(
+                    "Buy movie",
+                    false,
+                    "You must be logged in to make a purchase.",
+                    UIConstants.DisabledButtonOpacity);
+            }
+
+            if (balance < movie.GetEffectivePrice())
+            {
+                return new BuyButtonProps(
+                    "Buy movie",
+                    false,
+                    "Your balance is too low to purchase this movie.",
+                    UIConstants.DisabledButtonOpacity);
+            }
+
+            return new BuyButtonProps("Buy movie", true, null, UIConstants.EnabledButtonOpacity);
         }
 
-        if (balance < movie.GetEffectivePrice())
+        public void PurchaseMovie(int userId, Movie movie)
         {
-            return new BuyButtonProps(
-                "Buy movie",
-                false,
-                "Your balance is too low to purchase this movie.",
-                0.55);
+            movieRepo.PurchaseMovie(userId, movie.ID, movie.GetEffectivePrice());
         }
-
-        return new BuyButtonProps("Buy movie", true, null, 1.0);
-    }
-
-    public void PurchaseMovie(int userId, Movie movie)
-    {
-        movieRepo.PurchaseMovie(userId, movie.ID, movie.GetEffectivePrice());
     }
 }

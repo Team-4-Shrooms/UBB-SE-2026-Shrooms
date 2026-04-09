@@ -91,9 +91,8 @@ public sealed partial class MovieDetailPage : Page
         {
             PosterImage.Source = new BitmapImage(new Uri(url, UriKind.Absolute));
         }
-        catch
+        catch (UriFormatException)
         {
-            /* ignore invalid image URL */
         }
     }
 

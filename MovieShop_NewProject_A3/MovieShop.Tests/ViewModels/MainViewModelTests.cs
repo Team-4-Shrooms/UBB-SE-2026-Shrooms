@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
+using MovieShop.Services;
 using MovieShop.ViewModels;
 
 namespace MovieShop.Tests.ViewModels
@@ -11,12 +12,14 @@ namespace MovieShop.Tests.ViewModels
         private readonly Mock<IUserRepository> mockUserRepo;
         private readonly Mock<IActiveSalesRepository> mockSalesRepo;
         private readonly Mock<ITransactionRepository> mockTransactionRepo;
+        private readonly Mock<ISaleService> mockSaleService;
 
         public MainViewModelTests()
         {
             mockUserRepo = new Mock<IUserRepository>();
             mockSalesRepo = new Mock<IActiveSalesRepository>();
             mockTransactionRepo = new Mock<ITransactionRepository>();
+            mockSaleService = new Mock<ISaleService>();
 
             SessionManager.CurrentUserID = SessionManager.DefaultUserID;
         }
@@ -29,7 +32,7 @@ namespace MovieShop.Tests.ViewModels
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
 
             // Act
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Assert
             Assert.Equal(100m, viewModel.Balance);
@@ -45,7 +48,7 @@ namespace MovieShop.Tests.ViewModels
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
 
             // Act
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Assert
             Assert.Equal(0m, viewModel.Balance);
@@ -58,7 +61,7 @@ namespace MovieShop.Tests.ViewModels
             SessionManager.CurrentUserID = SessionManager.DefaultUserID;
             mockUserRepo.Setup(repo => repo.GetBalance(SessionManager.DefaultUserID)).Returns(150m);
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Act
             mockUserRepo.Setup(repo => repo.GetBalance(SessionManager.DefaultUserID)).Returns(200m);
@@ -74,7 +77,7 @@ namespace MovieShop.Tests.ViewModels
             // Arrange
             mockUserRepo.Setup(repo => repo.GetBalance(SessionManager.DefaultUserID)).Returns(150m);
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Act
             SessionManager.CurrentUserID = 0;
@@ -90,7 +93,7 @@ namespace MovieShop.Tests.ViewModels
             // Arrange
             mockUserRepo.Setup(repo => repo.GetBalance(It.IsAny<int>())).Returns(100m);
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Act & Assert
             viewModel.NavigateToMarketplaceCommand.Execute(null);
@@ -116,7 +119,7 @@ namespace MovieShop.Tests.ViewModels
             mockUserRepo.Setup(repo => repo.GetBalance(It.IsAny<int>())).Returns(100m);
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
             mockTransactionRepo.Setup(repo => repo.GetTransactionsByUserId(It.IsAny<int>())).Returns(new List<Transaction>());
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Act
             mockUserRepo.Setup(repo => repo.GetBalance(It.IsAny<int>())).Returns(300m);
@@ -133,7 +136,7 @@ namespace MovieShop.Tests.ViewModels
             // Arrange
             mockUserRepo.Setup(repo => repo.GetBalance(It.IsAny<int>())).Returns(150.50m);
             mockSalesRepo.Setup(repo => repo.GetCurrentSales()).Returns(new List<ActiveSale>());
-            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object);
+            var viewModel = new MainViewModel(mockUserRepo.Object, mockSalesRepo.Object, mockTransactionRepo.Object, mockSaleService.Object);
 
             // Act
             var display = viewModel.DisplayBalance;
