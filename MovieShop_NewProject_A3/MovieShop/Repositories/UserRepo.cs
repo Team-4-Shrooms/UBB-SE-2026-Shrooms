@@ -1,51 +1,55 @@
-using Microsoft.Data.SqlClient;
 using System;
+using Microsoft.Data.SqlClient;
 
 namespace MovieShop.Repositories
 {
     public class UserRepo : IUserRepository
     {
-        private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
+        private readonly DatabaseSingleton db = DatabaseSingleton.Instance;
 
         public decimal GetBalance(int userId)
         {
             if (userId <= 0)
+            {
                 return 0m;
+            }
 
             const string query = "SELECT Balance FROM Users WHERE ID = @id";
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
                 cmd.Parameters.AddWithValue("@id", userId);
                 var result = cmd.ExecuteScalar();
                 return result == null || result == DBNull.Value ? 0m : Convert.ToDecimal(result);
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
         }
 
         public void UpdateBalance(int userId, decimal newBalance)
         {
             if (userId <= 0)
+            {
                 return;
+            }
 
             const string query = "UPDATE Users SET Balance = @balance WHERE ID = @id";
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
                 cmd.Parameters.AddWithValue("@balance", newBalance);
                 cmd.Parameters.AddWithValue("@id", userId);
                 cmd.ExecuteNonQuery();
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
         }
     }

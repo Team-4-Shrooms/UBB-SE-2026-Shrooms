@@ -1,20 +1,20 @@
+using System;
+using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MovieShop.Models;
-using MovieShop.ViewModels;
 using MovieShop.Repositories;
-using System;
-using System.Globalization;
 using MovieShop.Services;
+using MovieShop.ViewModels;
 
 namespace MovieShop.Views;
 
 public sealed partial class MovieReviewsPage : Page
 {
-    private Movie? _movie;
-    private MainViewModel? _mainVm;
-    private readonly IMovieReviewService _reviewService = App.Services.GetRequiredService<IMovieReviewService>();
+    private Movie? movie;
+    private MainViewModel? mainVm;
+    private readonly IMovieReviewService reviewService = App.Services.GetRequiredService<IMovieReviewService>();
 
     public MovieReviewsPage()
     {
@@ -26,11 +26,13 @@ public sealed partial class MovieReviewsPage : Page
         base.OnNavigatedTo(e);
 
         if (e.Parameter is not MovieReviewsNavArgs args)
+        {
             return;
+        }
 
-        _movie = args.Movie;
-        _mainVm = args.MainViewModel;
-        TitleBlock.Text = _movie == null ? "Reviews" : $"Reviews - {_movie.Title}";
+        movie = args.Movie;
+        mainVm = args.MainViewModel;
+        TitleBlock.Text = movie == null ? "Reviews" : $"Reviews - {movie.Title}";
 
         AddReviewButton.IsEnabled = SessionManager.IsLoggedIn;
         LoadReviews();
@@ -39,21 +41,27 @@ public sealed partial class MovieReviewsPage : Page
     private void BackButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         if (Frame?.CanGoBack == true)
+        {
             Frame.GoBack();
+        }
     }
 
     private void LoadReviews()
     {
-        if (_movie == null)
+        if (movie == null)
+        {
             return;
+        }
 
-        ReviewsList.ItemsSource = _reviewService.GetReviewsForMovie(_movie.ID);
+        ReviewsList.ItemsSource = reviewService.GetReviewsForMovie(movie.ID);
     }
 
     private async void AddReviewButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (!SessionManager.IsLoggedIn || _movie == null)
+        if (!SessionManager.IsLoggedIn || movie == null)
+        {
             return;
+        }
 
         while (true)
         {
@@ -78,7 +86,9 @@ public sealed partial class MovieReviewsPage : Page
 
             var result = await dialog.ShowAsync();
             if (result != ContentDialogResult.Primary)
+            {
                 return;
+            }
 
             if (!TryParseRating(ratingBox.Text, out var rating, out var error))
             {
@@ -93,12 +103,11 @@ public sealed partial class MovieReviewsPage : Page
                 continue;
             }
 
-            _reviewService.AddReview(
-                _movie.ID,
+            reviewService.AddReview(
+                movie.ID,
                 SessionManager.CurrentUserID,
                 rating,
-                commentBox.Text
-            );
+                commentBox.Text);
             LoadReviews();
             return;
         }
@@ -107,12 +116,11 @@ public sealed partial class MovieReviewsPage : Page
     private static bool TryParseRating(string? text, out int rating, out string error)
     {
         rating = 0;
-        error = "";
+        error = string.Empty;
 
-        var s = (text ?? "").Trim();
+        var s = (text ?? string.Empty).Trim();
         if (!int.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out rating))
         {
-       
             if (!int.TryParse(s, NumberStyles.Number, CultureInfo.CurrentCulture, out rating))
             {
                 error = "Please enter a rating between 1 and 10.";

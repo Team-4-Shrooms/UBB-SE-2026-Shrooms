@@ -1,18 +1,18 @@
-﻿using MovieShop.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MovieShop.Models;
 
 namespace MovieShop.ViewModels
 {
     public class BuyEquipmentViewModel : INotifyPropertyChanged
     {
-        private Equipment? _selectedItem;
+        private Equipment? selectedItem;
         public Equipment? SelectedItem
         {
-            get => _selectedItem;
+            get => selectedItem;
             set
             {
-                _selectedItem = value;
+                selectedItem = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CanPurchase));
             }
@@ -22,7 +22,11 @@ namespace MovieShop.ViewModels
         {
             get
             {
-                if (SelectedItem == null) return false;
+                if (SelectedItem == null)
+                {
+                    return false;
+                }
+
                 bool isLoggedIn = SessionManager.CurrentUserID > 0;
 
                 decimal userBalance = SessionManager.CurrentUserBalance;

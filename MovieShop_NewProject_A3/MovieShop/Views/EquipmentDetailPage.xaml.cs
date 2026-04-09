@@ -1,53 +1,58 @@
+using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.Services;
-using System;
-using System.Linq;
 
 namespace MovieShop.Views
 {
     public sealed partial class EquipmentDetailPage : Page
     {
-        private readonly IEquipmentPurchaseService _purchaseService = App.Services.GetRequiredService<IEquipmentPurchaseService>();
-        private Equipment _selectedItem;
+        private readonly IEquipmentPurchaseService purchaseService = App.Services.GetRequiredService<IEquipmentPurchaseService>();
+        private Equipment selectedItem;
 
         public EquipmentDetailPage(Equipment item)
         {
             this.InitializeComponent();
-            _selectedItem = item;
+            selectedItem = item;
             PopulateUI();
         }
 
         private void PopulateUI()
         {
-            if (_selectedItem == null) return;
+            if (selectedItem == null)
+            {
+                return;
+            }
 
-            TitleLabel.Text = _selectedItem.Title;
-            DescriptionLabel.Text = _selectedItem.Description ?? "No description available.";
-            CategoryLabel.Text = _selectedItem.Category;
-            ConditionLabel.Text = _selectedItem.Condition;
-            PriceLabel.Text = $"Price: ${_selectedItem.Price:F2}";
+            TitleLabel.Text = selectedItem.Title;
+            DescriptionLabel.Text = selectedItem.Description ?? "No description available.";
+            CategoryLabel.Text = selectedItem.Category;
+            ConditionLabel.Text = selectedItem.Condition;
+            PriceLabel.Text = $"Price: ${selectedItem.Price:F2}";
 
-            if (!string.IsNullOrEmpty(_selectedItem.ImageUrl))
+            if (!string.IsNullOrEmpty(selectedItem.ImageUrl))
             {
                 try
                 {
-                    ItemImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(_selectedItem.ImageUrl));
+                    ItemImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(selectedItem.ImageUrl));
                 }
                 catch (UriFormatException ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[EquipmentDetailPage] Invalid image URL '{_selectedItem.ImageUrl}': {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[EquipmentDetailPage] Invalid image URL '{selectedItem.ImageUrl}': {ex.Message}");
                 }
             }
 
-            var canAfford = _purchaseService.CanAfford(SessionManager.CurrentUserID, _selectedItem.Price);
+            var canAfford = purchaseService.CanAfford(SessionManager.CurrentUserID, selectedItem.Price);
             ConfirmBuyButton.IsEnabled = canAfford;
             ErrorText.Visibility = canAfford ? Visibility.Collapsed : Visibility.Visible;
             if (!canAfford)
-                ErrorText.Text = $"Insufficient funds. Balance: {SessionManager.CurrentUserBalance:C} — Price: {_selectedItem.Price:C}";
+            {
+                ErrorText.Text = $"Insufficient funds. Balance: {SessionManager.CurrentUserBalance:C} — Price: {selectedItem.Price:C}";
+            }
         }
 
         private void BuyButton_Click(object sender, RoutedEventArgs e) => ShippingModal.Visibility = Visibility.Visible;
@@ -56,17 +61,23 @@ namespace MovieShop.Views
         private async void ConfirmShipping_Click(object sender, RoutedEventArgs e)
         {
             ModalErrorText.Visibility = Visibility.Collapsed;
-            string error = "";
+            string error = string.Empty;
 
             if (string.IsNullOrWhiteSpace(ModalNameInput.Text))
+            {
                 error += "- Name is required.\n";
+            }
 
             if (ModalAddressInput.Text.Length < 10)
+            {
                 error += "- Address too short (min 10 chars).\n";
+            }
 
             string phone = ModalPhoneInput.Text.Trim();
             if (phone.Length != 10 || !phone.All(char.IsDigit))
+            {
                 error += "- Phone must be exactly 10 digits.\n";
+            }
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -77,21 +88,23 @@ namespace MovieShop.Views
 
             try
             {
-                _purchaseService.PurchaseEquipment(
-                    _selectedItem.ID,
+                purchaseService.PurchaseEquipment(
+                    selectedItem.ID,
                     SessionManager.CurrentUserID,
-                    _selectedItem.Price,
+                    selectedItem.Price,
                     ModalAddressInput.Text);
 
-                if (App._window?.Content is NavigationPage navPage)
+                if (App.CurrentWindow?.Content is NavigationPage navPage)
+                {
                     navPage.ViewModel.RefreshWallet();
+                }
 
                 ShippingModal.Visibility = Visibility.Collapsed;
 
                 var dialog = new ContentDialog
                 {
                     Title = "Purchase successful",
-                    Content = $"\"{_selectedItem.Title}\" has been purchased and added to your inventory.",
+                    Content = $"\"{selectedItem.Title}\" has been purchased and added to your inventory.",
                     PrimaryButtonText = "OK",
                     DefaultButton = ContentDialogButton.Primary,
                     XamlRoot = XamlRoot
@@ -99,7 +112,9 @@ namespace MovieShop.Views
                 await dialog.ShowAsync();
 
                 if (this.Parent is ContentControl contentArea)
+                {
                     contentArea.Content = new MarketplacePage();
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -117,7 +132,9 @@ namespace MovieShop.Views
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.Parent is ContentControl contentArea)
+            {
                 contentArea.Content = new MarketplacePage();
+            }
         }
     }
 }

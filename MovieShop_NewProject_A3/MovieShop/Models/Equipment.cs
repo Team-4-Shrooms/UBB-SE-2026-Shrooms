@@ -1,6 +1,11 @@
 ﻿namespace MovieShop.Models
 {
-    public enum EquipmentStatus { Available, Sold, Pending }
+    public enum EquipmentStatus
+    {
+        Available,
+        Sold,
+        Pending
+    }
 
     public class Equipment
     {

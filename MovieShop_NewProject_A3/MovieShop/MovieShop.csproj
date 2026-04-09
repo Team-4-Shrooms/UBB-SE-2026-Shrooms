@@ -12,6 +12,8 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>SA0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Views\EquipmentDetailPage.xaml" />
@@ -57,6 +59,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\EquipmentDetailPage.xaml">

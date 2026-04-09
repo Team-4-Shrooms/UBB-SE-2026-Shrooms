@@ -1,8 +1,8 @@
+using System;
+using System.ComponentModel;
 using Moq;
 using MovieShop.ViewModels;
-using System.ComponentModel;
 using Xunit;
-using System;
 
 namespace MovieShop.Tests.ViewModels
 {
@@ -28,7 +28,7 @@ namespace MovieShop.Tests.ViewModels
         {
             // Arrange
             var viewModel = new MovieViewModel();
-            
+
             // Act
             viewModel.ApplyDatabaseSale(50, DateTime.Now.AddDays(1));
 
@@ -77,7 +77,7 @@ namespace MovieShop.Tests.ViewModels
             // Assert
             Assert.Equal(180, salePrice);
         }
-        
+
         [Fact]
         public void IsSaleActive_NoSale_ReturnsFalse()
         {
@@ -87,9 +87,9 @@ namespace MovieShop.Tests.ViewModels
             // Act/Assert
             Assert.False(viewModel.IsSaleActive);
             Assert.False(viewModel.ShowStrike);
-            Assert.Equal("", viewModel.SaleBadgeText);
+            Assert.Equal(string.Empty, viewModel.SaleBadgeText);
         }
-        
+
         [Fact]
         public void SaleBadgeText_WithActiveSale_ReturnsFormattedString()
         {

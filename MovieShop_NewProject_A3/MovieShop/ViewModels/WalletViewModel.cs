@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,93 +14,124 @@ namespace MovieShop.ViewModels
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        private int _currentUserID;
+        private int currentUserID;
 
         // --- Balance ---
-        private decimal _balance;
+        private decimal balance;
         public decimal Balance
         {
-            get => _balance;
+            get => balance;
             set
             {
-                _balance = value;
+                balance = value;
                 OnPropertyChanged(nameof(Balance));
                 OnPropertyChanged(nameof(DisplayBalance));
             }
         }
         public string DisplayBalance => Balance.ToString("C");
 
-
         // --- TopUp Form Fields ---
-        private string _cardHolderName = string.Empty;
+        private string cardHolderName = string.Empty;
         public string CardHolderName
         {
-            get => _cardHolderName;
-            set { _cardHolderName = value; OnPropertyChanged(nameof(CardHolderName)); }
-        }
-
-        private string _cardNumber = string.Empty;
-        public string CardNumber
-        {
-            get => _cardNumber;
+            get => cardHolderName;
             set
             {
-                _cardNumber = value;
+                cardHolderName = value;
+                OnPropertyChanged(nameof(CardHolderName));
+            }
+        }
+
+        private string cardNumber = string.Empty;
+        public string CardNumber
+        {
+            get => cardNumber;
+            set
+            {
+                cardNumber = value;
                 OnPropertyChanged(nameof(CardNumber));
             }
         }
 
-        private string _expirationDate = string.Empty;
+        private string expirationDate = string.Empty;
         public string ExpirationDate
         {
-            get => _expirationDate;
-            set { _expirationDate = value; OnPropertyChanged(nameof(ExpirationDate)); }
+            get => expirationDate;
+            set
+            {
+                expirationDate = value;
+                OnPropertyChanged(nameof(ExpirationDate));
+            }
         }
 
-        private string _cvv = string.Empty;
+        private string cvv = string.Empty;
         public string CVV
         {
-            get => _cvv;
-            set { _cvv = value; OnPropertyChanged(nameof(CVV)); }
+            get => cvv;
+            set
+            {
+                cvv = value;
+                OnPropertyChanged(nameof(CVV));
+            }
         }
 
         // --- TopUpAmount as double for NumberBox binding ---
-        private double _topUpAmount;
+        private double topUpAmount;
         public double TopUpAmount
         {
-            get => _topUpAmount;
-            set { _topUpAmount = value; OnPropertyChanged(nameof(TopUpAmount)); }
+            get => topUpAmount;
+            set
+            {
+                topUpAmount = value;
+                OnPropertyChanged(nameof(TopUpAmount));
+            }
         }
 
         // --- Feedback Messages ---
-        private string _errorMessage = string.Empty;
+        private string errorMessage = string.Empty;
         public string ErrorMessage
         {
-            get => _errorMessage;
-            set { _errorMessage = value; OnPropertyChanged(nameof(ErrorMessage)); }
+            get => errorMessage;
+            set
+            {
+                errorMessage = value;
+                OnPropertyChanged(nameof(ErrorMessage));
+            }
         }
 
-        private string _successMessage = string.Empty;
+        private string successMessage = string.Empty;
         public string SuccessMessage
         {
-            get => _successMessage;
-            set { _successMessage = value; OnPropertyChanged(nameof(SuccessMessage)); }
+            get => successMessage;
+            set
+            {
+                successMessage = value;
+                OnPropertyChanged(nameof(SuccessMessage));
+            }
         }
 
         // --- Loading State ---
-        private bool _isLoading;
+        private bool isLoading;
         public bool IsLoading
         {
-            get => _isLoading;
-            set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+            get => isLoading;
+            set
+            {
+                isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
         }
 
         // --- Transaction History ---
-        private ObservableCollection<Transaction> _transactions;
+        private ObservableCollection<Transaction> transactions;
         public ObservableCollection<Transaction> Transactions
         {
-            get => _transactions;
-            set { _transactions = value; OnPropertyChanged(nameof(Transactions)); }
+            get => transactions;
+            set
+            {
+                transactions = value;
+                OnPropertyChanged(nameof(Transactions));
+            }
         }
 
         // --- Commands ---
@@ -108,17 +139,17 @@ namespace MovieShop.ViewModels
         public IAsyncRelayCommand LoadTransactionsCommand { get; }
 
         // --- Repos ---
-        private readonly ITransactionRepository _transactionRepo;
-        private readonly IUserRepository _userRepo;
+        private readonly ITransactionRepository transactionRepo;
+        private readonly IUserRepository userRepo;
 
         // --- Constructor ---
         public WalletViewModel(int userID, decimal currentBalance, IUserRepository userRepo, ITransactionRepository transactionRepo)
         {
-            _userRepo = userRepo;
-            _transactionRepo = transactionRepo;
-            _currentUserID = userID;
-            _balance = currentBalance;
-            _transactions = new ObservableCollection<Transaction>();
+            this.userRepo = userRepo;
+            this.transactionRepo = transactionRepo;
+            currentUserID = userID;
+            balance = currentBalance;
+            transactions = new ObservableCollection<Transaction>();
             TopUpCommand = new RelayCommand(ExecuteTopUp);
             LoadTransactionsCommand = new AsyncRelayCommand(LoadTransactionsAsync);
         }
@@ -131,11 +162,13 @@ namespace MovieShop.ViewModels
 
             try
             {
-                var result = await Task.Run(() => _transactionRepo.GetTransactionsByUserId(_currentUserID));
+                var result = await Task.Run(() => transactionRepo.GetTransactionsByUserId(currentUserID));
 
                 Transactions.Clear();
                 foreach (var t in result)
+                {
                     Transactions.Add(t);
+                }
             }
             catch (System.Exception ex)
             {
@@ -151,14 +184,14 @@ namespace MovieShop.ViewModels
         {
             var transaction = new Transaction
             {
-                BuyerID = new User { ID = _currentUserID },
+                BuyerID = new User { ID = currentUserID },
                 Amount = amount,
                 Type = "TopUp",
                 Status = "Completed",
                 Timestamp = System.DateTime.Now
             };
 
-            Task.Run(() => _transactionRepo.LogTransaction(transaction));
+            Task.Run(() => transactionRepo.LogTransaction(transaction));
 
             Transactions.Insert(0, transaction);
         }
@@ -168,7 +201,9 @@ namespace MovieShop.ViewModels
             var sorted = Transactions.OrderByDescending(t => t.Timestamp).ToList();
             Transactions.Clear();
             foreach (var t in sorted)
+            {
                 Transactions.Add(t);
+            }
         }
 
         // --- TopUp Logic ---
@@ -178,7 +213,9 @@ namespace MovieShop.ViewModels
             SuccessMessage = string.Empty;
 
             if (!ValidateCard())
+            {
                 return;
+            }
 
             UpdateBalance((decimal)TopUpAmount);
             LogTopUpTransaction((decimal)TopUpAmount);
@@ -263,7 +300,7 @@ namespace MovieShop.ViewModels
         private void UpdateBalance(decimal amount)
         {
             Balance += amount;
-            _userRepo.UpdateBalance(_currentUserID, Balance);
+            userRepo.UpdateBalance(currentUserID, Balance);
         }
 
         private void ClearForm()
@@ -278,7 +315,7 @@ namespace MovieShop.ViewModels
         public void OnTransactionCompleted(decimal amount)
         {
             Balance += amount;
-            _userRepo.UpdateBalance(_currentUserID, Balance);
+            userRepo.UpdateBalance(currentUserID, Balance);
             _ = LoadTransactionsAsync();
         }
     }

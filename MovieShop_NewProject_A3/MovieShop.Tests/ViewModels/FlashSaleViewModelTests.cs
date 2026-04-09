@@ -1,5 +1,5 @@
-using MovieShop.ViewModels;
 using System;
+using MovieShop.ViewModels;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels
@@ -29,12 +29,12 @@ namespace MovieShop.Tests.ViewModels
 
             // Act
             // Since this runs in a test, DispatcherTimer might throw, but let's assume it works or is mocked.
-            // Actually, in WinUI 3, creating DispatcherTimer off UI thread throws: 
+            // Actually, in WinUI 3, creating DispatcherTimer off UI thread throws:
             // "The application called an interface that was marshalled for a different thread."
             // Assuming it doesn't throw for now.
-            try 
+            try
             {
-                var viewModel = new FlashSaleViewModel(futureDate, () => {});
+                var viewModel = new FlashSaleViewModel(futureDate, () => { });
 
                 // Assert
                 Assert.True(viewModel.IsActive);

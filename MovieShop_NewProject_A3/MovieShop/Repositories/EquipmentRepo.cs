@@ -1,8 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
-using MovieShop.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Data.SqlClient;
+using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
@@ -12,7 +12,7 @@ namespace MovieShop.Repositories
         private const string StatusSold = "Sold";
         private const string StatusCompleted = "Completed";
 
-        DatabaseSingleton _database = DatabaseSingleton.Instance;
+        private DatabaseSingleton database = DatabaseSingleton.Instance;
 
         public List<Equipment> FetchAvailableEquipment()
         {
@@ -20,11 +20,11 @@ namespace MovieShop.Repositories
 
             string query = $"SELECT ID, SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition FROM Equipment WHERE Status = '{StatusAvailable}'";
 
-            SqlCommand command = new SqlCommand(query, _database.Connection);
+            SqlCommand command = new SqlCommand(query, database.Connection);
 
             try
             {
-                _database.OpenConnection();
+                database.OpenConnection();
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -36,18 +36,18 @@ namespace MovieShop.Repositories
                             Title = reader.GetString(2),
                             Price = reader.GetDecimal(3),
                             Status = EquipmentStatus.Available,
-                            Description = reader.IsDBNull(5) ? "" : reader.GetString(5),
-                            ImageUrl = reader.IsDBNull(6) ? "" : reader.GetString(6),
-                            Category = reader.IsDBNull(7) ? "" : reader.GetString(7),
-                            Condition = reader.IsDBNull(8) ? "" : reader.GetString(8)
+                            Description = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                            ImageUrl = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                            Category = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                            Condition = reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
                         });
                     }
                 }
-                _database.CloseConnection();
+                database.CloseConnection();
             }
             catch (Exception exception)
             {
-                _database.CloseConnection();
+                database.CloseConnection();
                 Debug.WriteLine("Fetch error: " + exception.Message);
                 throw;
             }
@@ -60,7 +60,7 @@ namespace MovieShop.Repositories
             string query = $@"INSERT INTO Equipment (SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition) 
                             VALUES (@sellerId, @title, @price, '{StatusAvailable}', @description, @imageUrl, @category, @condition)";
 
-            SqlCommand command = new SqlCommand(query, _database.Connection);
+            SqlCommand command = new SqlCommand(query, database.Connection);
             command.Parameters.AddWithValue("@sellerId", item.SellerID);
             command.Parameters.AddWithValue("@title", item.Title);
             command.Parameters.AddWithValue("@price", item.Price);
@@ -69,26 +69,26 @@ namespace MovieShop.Repositories
             command.Parameters.AddWithValue("@description", string.IsNullOrEmpty(item.Description) ? (object)DBNull.Value : item.Description);
             command.Parameters.AddWithValue("@imageUrl", string.IsNullOrEmpty(item.ImageUrl) ? (object)DBNull.Value : item.ImageUrl);
 
-            _database.OpenConnection();
+            database.OpenConnection();
             command.ExecuteNonQuery();
-            _database.CloseConnection();
+            database.CloseConnection();
         }
 
         public void PurchaseEquipment(int equipmentId, int buyerId, decimal price, string address)
         {
-            _database.OpenConnection();
-            SqlTransaction sqlTransaction = _database.Connection.BeginTransaction();
+            database.OpenConnection();
+            SqlTransaction sqlTransaction = database.Connection.BeginTransaction();
 
             try
             {
                 string deductQuery = "UPDATE Users SET Balance = Balance - @price WHERE ID = @buyerId";
-                SqlCommand deductCommand = new SqlCommand(deductQuery, _database.Connection, sqlTransaction);
+                SqlCommand deductCommand = new SqlCommand(deductQuery, database.Connection, sqlTransaction);
                 deductCommand.Parameters.AddWithValue("@price", price);
                 deductCommand.Parameters.AddWithValue("@buyerId", buyerId);
                 deductCommand.ExecuteNonQuery();
 
                 string updateEquipmentQuery = $"UPDATE Equipment SET Status = '{StatusSold}' WHERE ID = @equipmentId";
-                SqlCommand updateEquipmentCommand = new SqlCommand(updateEquipmentQuery, _database.Connection, sqlTransaction);
+                SqlCommand updateEquipmentCommand = new SqlCommand(updateEquipmentQuery, database.Connection, sqlTransaction);
                 updateEquipmentCommand.Parameters.AddWithValue("@equipmentId", equipmentId);
                 updateEquipmentCommand.ExecuteNonQuery();
 
@@ -96,7 +96,7 @@ namespace MovieShop.Repositories
                                               SELECT @buyerId, SellerID, ID, @amount, '{StatusCompleted}', @address, 'EquipmentPurchase', GETDATE()
                                               FROM Equipment WHERE ID = @equipmentId";
 
-                SqlCommand logTransactionCommand = new SqlCommand(logTransactionQuery, _database.Connection, sqlTransaction);
+                SqlCommand logTransactionCommand = new SqlCommand(logTransactionQuery, database.Connection, sqlTransaction);
                 logTransactionCommand.Parameters.AddWithValue("@buyerId", buyerId);
                 logTransactionCommand.Parameters.AddWithValue("@amount", -price);
                 logTransactionCommand.Parameters.AddWithValue("@address", address);
@@ -104,12 +104,12 @@ namespace MovieShop.Repositories
                 logTransactionCommand.ExecuteNonQuery();
 
                 sqlTransaction.Commit();
-                _database.CloseConnection();
+                database.CloseConnection();
             }
             catch (Exception exception)
             {
                 sqlTransaction.Rollback();
-                _database.CloseConnection();
+                database.CloseConnection();
                 Debug.WriteLine("Failed transaction: " + exception.Message);
                 throw;
             }

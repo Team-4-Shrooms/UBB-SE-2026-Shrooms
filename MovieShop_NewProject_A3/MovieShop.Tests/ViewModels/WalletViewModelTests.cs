@@ -1,30 +1,30 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels
 {
     public class WalletViewModelTests
     {
-        private readonly Mock<IUserRepository> _mockUserRepo;
-        private readonly Mock<ITransactionRepository> _mockTransactionRepo;
+        private readonly Mock<IUserRepository> mockUserRepo;
+        private readonly Mock<ITransactionRepository> mockTransactionRepo;
 
         public WalletViewModelTests()
         {
-            _mockUserRepo = new Mock<IUserRepository>();
-            _mockTransactionRepo = new Mock<ITransactionRepository>();
+            mockUserRepo = new Mock<IUserRepository>();
+            mockTransactionRepo = new Mock<ITransactionRepository>();
         }
 
         [Fact]
         public void Constructor_InitializesValues()
         {
             // Arrange & Act
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object);
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Assert
             Assert.Equal(100m, viewModel.Balance);
@@ -41,8 +41,8 @@ namespace MovieShop.Tests.ViewModels
             {
                 new Transaction { ID = 1, Amount = 50, Type = "TopUp" }
             };
-            _mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Returns(transactions);
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object);
+            mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Returns(transactions);
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             await viewModel.LoadTransactionsAsync();
@@ -58,8 +58,8 @@ namespace MovieShop.Tests.ViewModels
         public async Task LoadTransactionsAsync_HandlesException()
         {
             // Arrange
-            _mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Throws(new Exception("DB Error"));
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object);
+            mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Throws(new Exception("DB Error"));
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             await viewModel.LoadTransactionsAsync();
@@ -82,7 +82,7 @@ namespace MovieShop.Tests.ViewModels
         public void TopUp_InvalidInput_SetsErrorMessage(string name, string card, string exp, string cvv, double amount, string expectedError)
         {
             // Arrange
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object)
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object)
             {
                 CardHolderName = name,
                 CardNumber = card,
@@ -97,14 +97,14 @@ namespace MovieShop.Tests.ViewModels
             // Assert
             Assert.Contains(expectedError, viewModel.ErrorMessage);
             Assert.Empty(viewModel.SuccessMessage);
-            _mockUserRepo.Verify(r => r.UpdateBalance(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
+            mockUserRepo.Verify(r => r.UpdateBalance(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
         }
 
         [Fact]
         public void TopUp_ValidInput_UpdatesBalanceAndLogsTransaction()
         {
             // Arrange
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object)
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object)
             {
                 CardHolderName = "John Doe",
                 CardNumber = "1234123412341234",
@@ -120,11 +120,11 @@ namespace MovieShop.Tests.ViewModels
             Assert.Empty(viewModel.ErrorMessage);
             Assert.Contains("Successfully added", viewModel.SuccessMessage);
             Assert.Equal(150m, viewModel.Balance);
-            _mockUserRepo.Verify(r => r.UpdateBalance(1, 150m), Times.Once);
-            
+            mockUserRepo.Verify(r => r.UpdateBalance(1, 150m), Times.Once);
+
             // Note: LogTopUpTransaction is async without await, so we might need a small delay or just wait until background tasks finish
-            // Task.Delay(100).Wait(); 
-            // Assert.Single(viewModel.Transactions); 
+            // Task.Delay(100).Wait();
+            // Assert.Single(viewModel.Transactions);
             // It inserts 0 immediately to observable collection, then tasks repo
             Assert.Single(viewModel.Transactions);
             Assert.Equal(50m, viewModel.Transactions[0].Amount);
@@ -135,15 +135,15 @@ namespace MovieShop.Tests.ViewModels
         public void OnTransactionCompleted_UpdatesBalanceAndReloads()
         {
             // Arrange
-            _mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Returns(new List<Transaction>());
-            var viewModel = new WalletViewModel(1, 100m, _mockUserRepo.Object, _mockTransactionRepo.Object);
+            mockTransactionRepo.Setup(r => r.GetTransactionsByUserId(1)).Returns(new List<Transaction>());
+            var viewModel = new WalletViewModel(1, 100m, mockUserRepo.Object, mockTransactionRepo.Object);
 
             // Act
             viewModel.OnTransactionCompleted(25m);
 
             // Assert
             Assert.Equal(125m, viewModel.Balance);
-            _mockUserRepo.Verify(r => r.UpdateBalance(1, 125m), Times.Once);
+            mockUserRepo.Verify(r => r.UpdateBalance(1, 125m), Times.Once);
         }
     }
 }

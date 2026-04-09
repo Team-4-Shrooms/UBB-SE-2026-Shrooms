@@ -1,28 +1,32 @@
-﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace MovieShop.Repositories
 {
     public sealed class DatabaseSingleton : IDatabaseSingleton
     {
-        private static DatabaseSingleton? _instance;
-        private readonly SqlConnection _connection;
+        private static DatabaseSingleton? instance;
+        private readonly SqlConnection connection;
 
-        public static DatabaseSingleton Instance => _instance ??= new DatabaseSingleton();
+        public static DatabaseSingleton Instance => instance ??= new DatabaseSingleton();
 
-        public SqlConnection Connection => _connection;
-        private DatabaseSingleton() => _connection = new SqlConnection($"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename={Helpers.GetProjectDirectory()}\\MovieShopDB.mdf;Integrated Security=True;MultipleActiveResultSets=True");
+        public SqlConnection Connection => connection;
+        private DatabaseSingleton() => connection = new SqlConnection($"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename={Helpers.GetProjectDirectory()}\\MovieShopDB.mdf;Integrated Security=True;MultipleActiveResultSets=True");
 
         public void OpenConnection()
         {
-            if (_connection.State == System.Data.ConnectionState.Open) return;
-            _connection.Open();
+            if (connection.State == System.Data.ConnectionState.Open)
+            {
+                return;
+            }
+
+            connection.Open();
         }
 
-        public void CloseConnection() => _connection.Close();
+        public void CloseConnection() => connection.Close();
     }
 }

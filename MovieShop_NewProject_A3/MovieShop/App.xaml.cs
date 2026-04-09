@@ -7,10 +7,9 @@ using MovieShop.ViewModels;
 
 namespace MovieShop
 {
-
     public partial class App : Application
     {
-        public static Window? _window;
+        public static Window? CurrentWindow;
 
         public static IServiceProvider Services { get; private set; }
 
@@ -49,8 +48,8 @@ namespace MovieShop
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
-            _window.Activate();
+            CurrentWindow = new MainWindow();
+            CurrentWindow.Activate();
         }
     }
 }

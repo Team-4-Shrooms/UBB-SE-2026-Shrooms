@@ -5,18 +5,18 @@ namespace MovieShop.Tests.Repositories
 {
     public class ActiveSalesRepoTests
     {
-        private readonly ActiveSalesRepo _repo;
+        private readonly ActiveSalesRepo repo;
 
         public ActiveSalesRepoTests()
         {
-            _repo = new ActiveSalesRepo();
+            repo = new ActiveSalesRepo();
         }
 
         [Fact]
         public void GetCurrentSales_ExecutesAndReturnsList()
         {
             // Integration test
-            var result = _repo.GetCurrentSales();
+            var result = repo.GetCurrentSales();
             Assert.NotNull(result);
         }
     }

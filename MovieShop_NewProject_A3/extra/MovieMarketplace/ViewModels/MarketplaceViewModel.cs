@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -10,9 +10,9 @@ namespace MovieMarketplace.ViewModels
 {
     public class MarketplaceViewModel : INotifyPropertyChanged
     {
-        private readonly EquipmentRepository _repository = new EquipmentRepository();
+        private readonly EquipmentRepository repository = new EquipmentRepository();
 
-        private List<Equipment> _allOriginalItems = new List<Equipment>();
+        private List<Equipment> allOriginalItems = new List<Equipment>();
 
         public ObservableCollection<Equipment> AvailableItems { get; set; } = new ObservableCollection<Equipment>();
 
@@ -33,17 +33,17 @@ namespace MovieMarketplace.ViewModels
 
         public void LoadData()
         {
-            var data = _repository.FetchAvailableEquipment() ?? new List<Equipment>();
-            _allOriginalItems = data;
+            var data = repository.FetchAvailableEquipment() ?? new List<Equipment>();
+            allOriginalItems = data;
 
-            UpdateDisplayList(_allOriginalItems);
+            UpdateDisplayList(allOriginalItems);
         }
 
         public void FilterByCategory(string? category)
         {
             var filtered = string.IsNullOrEmpty(category)
-                ? _allOriginalItems
-                : _allOriginalItems.Where(x => x.Category == category).ToList();
+                ? allOriginalItems
+                : allOriginalItems.Where(x => x.Category == category).ToList();
 
             UpdateDisplayList(filtered);
         }

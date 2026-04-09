@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -13,29 +13,29 @@ namespace MovieShop.ViewModels
 {
     public class MovieViewModel : INotifyPropertyChanged
     {
-        private int _saleID;
-        private decimal _basePrice;
-        private decimal _discountPercent;
+        private int saleID;
+        private decimal basePrice;
+        private decimal discountPercent;
 
-        private DateTime _expiryDate;
+        private DateTime expiryDate;
 
-        private FlashSaleViewModel _saleTimer;
+        private FlashSaleViewModel saleTimer;
         public FlashSaleViewModel SaleTimer
         {
-            get => _saleTimer;
+            get => saleTimer;
             set
             {
-                _saleTimer = value;
+                saleTimer = value;
                 OnPropertyChanged();
             }
         }
 
         public int SaleID
         {
-            get => _saleID;
+            get => saleID;
             set
             {
-                _saleID = value;
+                saleID = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsSaleActive));
                 OnPropertyChanged(nameof(DisplayPrice));
@@ -44,10 +44,10 @@ namespace MovieShop.ViewModels
 
         public decimal BasePrice
         {
-            get => _basePrice;
+            get => basePrice;
             set
             {
-                _basePrice = value;
+                basePrice = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayPrice));
             }
@@ -55,15 +55,15 @@ namespace MovieShop.ViewModels
 
         public decimal SalePrice
         {
-            get => BasePrice * (1 - (_discountPercent / 100.0m));
+            get => BasePrice * (1 - (discountPercent / 100.0m));
         }
 
         public decimal DiscountPercent
         {
-            get => _discountPercent;
+            get => discountPercent;
             set
             {
-                _discountPercent = value;
+                discountPercent = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(SalePrice));
             }
@@ -73,15 +73,18 @@ namespace MovieShop.ViewModels
         {
             get
             {
-                if(_saleID !=  0)
+                if (saleID != 0)
+                {
                     return true;
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
         public decimal DisplayPrice => IsSaleActive ? SalePrice : BasePrice;
-
 
         public void RevertToOriginalPrice()
         {
@@ -89,17 +92,17 @@ namespace MovieShop.ViewModels
             this.SaleTimer = null;
         }
 
-        public void ApplyDatabaseSale(decimal discountPercent, DateTime expiryDate )
+        public void ApplyDatabaseSale(decimal discountPercent, DateTime expiryDate)
         {
             this.DiscountPercent = discountPercent;
             this.SaleID = 1;
 
-            this._expiryDate = expiryDate;
+            this.expiryDate = expiryDate;
 
             this.SaleTimer = new FlashSaleViewModel(expiryDate, this.RevertToOriginalPrice);
         }
 
-        public string SaleBadgeText => IsSaleActive ? $"{DiscountPercent:0}% OFF" : "";
+        public string SaleBadgeText => IsSaleActive ? $"{DiscountPercent:0}% OFF" : string.Empty;
         public bool ShowStrike => IsSaleActive;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -107,7 +110,5 @@ namespace MovieShop.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
-
     }
 }

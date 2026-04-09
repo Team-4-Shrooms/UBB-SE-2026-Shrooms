@@ -5,24 +5,24 @@ namespace MovieShop.Tests.Repositories
 {
     public class InventoryRepoTests
     {
-        private readonly InventoryRepo _repo;
+        private readonly InventoryRepo repo;
 
         public InventoryRepoTests()
         {
-            _repo = new InventoryRepo();
+            repo = new InventoryRepo();
         }
 
         [Fact]
         public void GetOwnedMovies_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => _repo.GetOwnedMovies(1));
+            var exception = Record.Exception(() => repo.GetOwnedMovies(1));
             Assert.Null(exception);
         }
 
         [Fact]
         public void GetOwnedTickets_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => _repo.GetOwnedTickets(1));
+            var exception = Record.Exception(() => repo.GetOwnedTickets(1));
             Assert.Null(exception);
         }
     }

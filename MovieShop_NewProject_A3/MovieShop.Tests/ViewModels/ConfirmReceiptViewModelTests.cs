@@ -1,25 +1,25 @@
+using System;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.ViewModels;
-using System;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels
 {
     public class ConfirmReceiptViewModelTests
     {
-        private readonly Mock<IUserRepository> _mockUserRepo;
-        private readonly Mock<IServiceProvider> _mockServiceProvider;
+        private readonly Mock<IUserRepository> mockUserRepo;
+        private readonly Mock<IServiceProvider> mockServiceProvider;
 
         public ConfirmReceiptViewModelTests()
         {
-            _mockUserRepo = new Mock<IUserRepository>();
+            mockUserRepo = new Mock<IUserRepository>();
 
-            _mockServiceProvider = new Mock<IServiceProvider>();
-            _mockServiceProvider.Setup(x => x.GetService(typeof(IUserRepository))).Returns(_mockUserRepo.Object);
+            mockServiceProvider = new Mock<IServiceProvider>();
+            mockServiceProvider.Setup(x => x.GetService(typeof(IUserRepository))).Returns(mockUserRepo.Object);
 
-            TestServiceHelper.SetAppServices(_mockServiceProvider.Object);
+            TestServiceHelper.SetAppServices(mockServiceProvider.Object);
         }
 
         [Fact]
@@ -33,8 +33,8 @@ namespace MovieShop.Tests.ViewModels
                 BuyerID = new User { ID = 1 },
                 SellerID = new User { ID = 2 }
             };
-            
-            _mockUserRepo.Setup(r => r.GetBalance(2)).Returns(50m);
+
+            mockUserRepo.Setup(r => r.GetBalance(2)).Returns(50m);
             var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
 
             // Act
@@ -46,7 +46,7 @@ namespace MovieShop.Tests.ViewModels
             Assert.False(viewModel.IsConfirmButtonVisible);
             Assert.Contains("Receipt confirmed", viewModel.SuccessMessage);
             Assert.Equal(150m, viewModel.SellerBalance);
-            _mockUserRepo.Verify(r => r.UpdateBalance(2, 150m), Times.Once);
+            mockUserRepo.Verify(r => r.UpdateBalance(2, 150m), Times.Once);
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace MovieShop.Tests.ViewModels
                 Status = "Pending",
                 BuyerID = new User { ID = 3 },
             };
-            
+
             var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
 
             // Act
@@ -78,7 +78,7 @@ namespace MovieShop.Tests.ViewModels
                 Status = "Completed",
                 BuyerID = new User { ID = 1 },
             };
-            
+
             var viewModel = new ConfirmReceiptViewModel(1, transaction, 50m);
 
             // Act

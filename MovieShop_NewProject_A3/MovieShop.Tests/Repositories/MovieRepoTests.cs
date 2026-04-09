@@ -5,17 +5,17 @@ namespace MovieShop.Tests.Repositories
 {
     public class MovieRepoTests
     {
-        private readonly MovieRepo _repo;
+        private readonly MovieRepo repo;
 
         public MovieRepoTests()
         {
-            _repo = new MovieRepo();
+            repo = new MovieRepo();
         }
 
         [Fact]
         public void GetAllMovies_ExecutesAndReturnsList()
         {
-            var result = _repo.GetAllMovies();
+            var result = repo.GetAllMovies();
             Assert.NotNull(result);
         }
     }

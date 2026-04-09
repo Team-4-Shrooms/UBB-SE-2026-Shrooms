@@ -1,9 +1,9 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
 using MovieShop.ViewModels;
-using System;
 
 namespace MovieShop.Views
 {

@@ -1,26 +1,26 @@
+using System;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
 using MovieShop.ViewModels;
-using System;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels
 {
     public class SellEquipmentViewModelTests
     {
-        private readonly Mock<IEquipmentRepository> _mockEquipmentRepo;
-        private readonly Mock<IServiceProvider> _mockServiceProvider;
+        private readonly Mock<IEquipmentRepository> mockEquipmentRepo;
+        private readonly Mock<IServiceProvider> mockServiceProvider;
 
         public SellEquipmentViewModelTests()
         {
-            _mockEquipmentRepo = new Mock<IEquipmentRepository>();
+            mockEquipmentRepo = new Mock<IEquipmentRepository>();
 
-            _mockServiceProvider = new Mock<IServiceProvider>();
-            _mockServiceProvider.Setup(x => x.GetService(typeof(IEquipmentRepository))).Returns(_mockEquipmentRepo.Object);
+            mockServiceProvider = new Mock<IServiceProvider>();
+            mockServiceProvider.Setup(x => x.GetService(typeof(IEquipmentRepository))).Returns(mockEquipmentRepo.Object);
 
-            TestServiceHelper.SetAppServices(_mockServiceProvider.Object);
-            
+            TestServiceHelper.SetAppServices(mockServiceProvider.Object);
+
             SessionManager.CurrentUserID = 1; // Ensure an active user
         }
 
@@ -67,16 +67,15 @@ namespace MovieShop.Tests.ViewModels
             viewModel.SubmitListing("Electronics", "New", "image.png");
 
             // Assert
-            _mockEquipmentRepo.Verify(r => r.ListItem(It.Is<Equipment>(e => 
-                e.Title == "Camera" && 
-                e.Description == "Great Camera" && 
-                e.Price == 100m && 
-                e.Category == "Electronics" && 
-                e.Condition == "New" && 
-                e.ImageUrl == "image.png" && 
+            mockEquipmentRepo.Verify(r => r.ListItem(It.Is<Equipment>(e =>
+                e.Title == "Camera" &&
+                e.Description == "Great Camera" &&
+                e.Price == 100m &&
+                e.Category == "Electronics" &&
+                e.Condition == "New" &&
+                e.ImageUrl == "image.png" &&
                 e.Status == EquipmentStatus.Available &&
-                e.SellerID == 1
-            )), Times.Once);
+                e.SellerID == 1)), Times.Once);
         }
     }
 }

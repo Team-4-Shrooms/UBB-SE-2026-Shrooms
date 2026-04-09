@@ -1,24 +1,24 @@
-using Microsoft.Data.SqlClient;
-using MovieShop.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.SqlClient;
+using MovieShop.Models;
 
 namespace MovieShop.Repositories
 {
     public class MovieRepo : IMovieRepository
     {
-        private readonly DatabaseSingleton _db = DatabaseSingleton.Instance;
+        private readonly DatabaseSingleton db = DatabaseSingleton.Instance;
 
         public List<Movie> GetAllMovies()
         {
             var list = new List<Movie>();
             const string query = @"SELECT ID, Title, Description, Price, ImageUrl FROM Movies ORDER BY Title";
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -27,7 +27,7 @@ namespace MovieShop.Repositories
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
 
             PopulateRatingsInCode(list);
@@ -38,14 +38,16 @@ namespace MovieShop.Repositories
         {
             const string query = @"SELECT ID, Title, Description, Price, ImageUrl FROM Movies WHERE ID = @id";
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
                 cmd.Parameters.AddWithValue("@id", movieId);
                 using var reader = cmd.ExecuteReader();
                 if (!reader.Read())
+                {
                     return null;
+                }
 
                 var movie = MapMovie(reader);
                 PopulateRatingsInCode(new[] { movie });
@@ -53,21 +55,23 @@ namespace MovieShop.Repositories
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
         }
 
         public bool UserOwnsMovie(int userId, int movieId)
         {
             if (userId <= 0)
+            {
                 return false;
+            }
 
             const string query = @"SELECT 1 FROM OwnedMovies WHERE UserID = @uid AND MovieID = @mid";
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
                 cmd.Parameters.AddWithValue("@uid", userId);
                 cmd.Parameters.AddWithValue("@mid", movieId);
                 var o = cmd.ExecuteScalar();
@@ -75,34 +79,38 @@ namespace MovieShop.Repositories
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
         }
 
         public void PurchaseMovie(int userId, int movieId, decimal finalPrice)
         {
             if (userId <= 0)
+            {
                 throw new InvalidOperationException("You must be logged in to purchase.");
+            }
 
-            _db.OpenConnection();
-            using var sqlTrans = _db.Connection.BeginTransaction();
+            db.OpenConnection();
+            using var sqlTrans = db.Connection.BeginTransaction();
             try
             {
                 int ownedCount;
                 string checkOwned = @"SELECT COUNT(*) FROM OwnedMovies WHERE UserID = @uid AND MovieID = @mid";
-                using (var cmd = new SqlCommand(checkOwned, _db.Connection, sqlTrans))
+                using (var cmd = new SqlCommand(checkOwned, db.Connection, sqlTrans))
                 {
                     cmd.Parameters.AddWithValue("@uid", userId);
                     cmd.Parameters.AddWithValue("@mid", movieId);
-                    ownedCount = (int)cmd.ExecuteScalar()!;
+                    ownedCount = (int)cmd.ExecuteScalar() !;
                 }
 
                 if (ownedCount > 0)
+                {
                     throw new InvalidOperationException("You already own this movie.");
+                }
 
                 string deductSql = @"UPDATE Users SET Balance = Balance - @price WHERE ID = @uid AND Balance >= @price";
                 int updated;
-                using (var cmd = new SqlCommand(deductSql, _db.Connection, sqlTrans))
+                using (var cmd = new SqlCommand(deductSql, db.Connection, sqlTrans))
                 {
                     cmd.Parameters.AddWithValue("@price", finalPrice);
                     cmd.Parameters.AddWithValue("@uid", userId);
@@ -110,10 +118,12 @@ namespace MovieShop.Repositories
                 }
 
                 if (updated == 0)
+                {
                     throw new InvalidOperationException("Insufficient balance.");
+                }
 
                 string insertOwned = @"INSERT INTO OwnedMovies (UserID, MovieID) VALUES (@uid, @mid)";
-                using (var cmd = new SqlCommand(insertOwned, _db.Connection, sqlTrans))
+                using (var cmd = new SqlCommand(insertOwned, db.Connection, sqlTrans))
                 {
                     cmd.Parameters.AddWithValue("@uid", userId);
                     cmd.Parameters.AddWithValue("@mid", movieId);
@@ -121,7 +131,7 @@ namespace MovieShop.Repositories
                 }
 
                 string insertTx = @"INSERT INTO Transactions (BuyerID, SellerID, EquipmentID, MovieID, EventID, Amount, Type, Status, Timestamp, ShippingAddress) VALUES (@buyerID, NULL, NULL, @movieID, NULL, @amount, @type, @status, @timestamp, NULL)";
-                using (var cmd = new SqlCommand(insertTx, _db.Connection, sqlTrans))
+                using (var cmd = new SqlCommand(insertTx, db.Connection, sqlTrans))
                 {
                     cmd.Parameters.AddWithValue("@buyerID", userId);
                     cmd.Parameters.AddWithValue("@movieID", movieId);
@@ -141,7 +151,7 @@ namespace MovieShop.Repositories
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
         }
         private static Movie MapMovie(SqlDataReader reader)
@@ -150,7 +160,7 @@ namespace MovieShop.Repositories
             {
                 ID = reader.GetInt32(0),
                 Title = reader.GetString(1),
-                Description = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                Description = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
                 Price = reader.GetDecimal(3),
                 ImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4)
             };
@@ -159,7 +169,9 @@ namespace MovieShop.Repositories
         private void PopulateRatingsInCode(IReadOnlyList<Movie> movies)
         {
             if (movies.Count == 0)
+            {
                 return;
+            }
 
             var ids = movies.Select(m => m.ID).Distinct().ToList();
 
@@ -173,13 +185,15 @@ namespace MovieShop.Repositories
 
             var ratings = new Dictionary<int, double>();
 
-            _db.OpenConnection();
+            db.OpenConnection();
             try
             {
-                using var cmd = new SqlCommand(query, _db.Connection);
+                using var cmd = new SqlCommand(query, db.Connection);
 
                 for (int i = 0; i < ids.Count; i++)
+                {
                     cmd.Parameters.AddWithValue(paramNames[i], ids[i]);
+                }
 
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -192,15 +206,19 @@ namespace MovieShop.Repositories
             }
             finally
             {
-                _db.CloseConnection();
+                db.CloseConnection();
             }
 
             foreach (var m in movies)
             {
                 if (ratings.TryGetValue(m.ID, out var avg))
+                {
                     m.Rating = avg;
+                }
                 else
+                {
                     m.Rating = 0;
+                }
             }
         }
     }

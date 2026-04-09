@@ -1,6 +1,6 @@
+using System.ComponentModel;
 using MovieShop.Models;
 using MovieShop.ViewModels;
-using System.ComponentModel;
 using Xunit;
 
 namespace MovieShop.Tests.ViewModels

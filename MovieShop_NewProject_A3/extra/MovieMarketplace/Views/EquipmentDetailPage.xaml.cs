@@ -10,7 +10,7 @@ namespace MovieMarketplace.Views
 {
     public sealed partial class EquipmentDetailPage : Page
     {
-        private readonly EquipmentRepository _repo = new EquipmentRepository();
+        private readonly EquipmentRepository repo = new EquipmentRepository();
         public BuyViewModel ViewModel { get; set; } = new BuyViewModel();
 
         public EquipmentDetailPage()
@@ -77,7 +77,7 @@ namespace MovieMarketplace.Views
             try
             {
                 // VIB-39: Status Update in DB
-                _repo.PurchaseEquipment(
+                repo.PurchaseEquipment(
                     ViewModel.SelectedItem.ID,
                     SessionManager.CurrentUserID,
                     ViewModel.SelectedItem.Price,

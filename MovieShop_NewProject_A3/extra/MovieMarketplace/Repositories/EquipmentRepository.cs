@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using MovieMarketplace.Models;
 using System;
 using System.Collections.Generic;
@@ -7,13 +7,13 @@ namespace MovieMarketplace.Repositories
 {
     public class EquipmentRepository
     {
-        private readonly string _connectionString = @"Server=.\SQLEXPRESS;Database=MovieMarketplaceDB;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;";
+        private readonly string connectionString = @"Server=.\SQLEXPRESS;Database=MovieMarketplaceDB;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False;";
 
         public List<Equipment> FetchAvailableEquipment()
         {
             var items = new List<Equipment>();
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 string query = "SELECT ID, SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition FROM Equipment WHERE Status = 'Available'";
                 SqlCommand cmd = new SqlCommand(query, conn);
@@ -43,7 +43,7 @@ namespace MovieMarketplace.Repositories
 
         public void AddEquipment(Equipment item)
         {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 string query = @"INSERT INTO Equipment (SellerID, Title, Price, Status, Description, ImageUrl, Category, Condition) 
                                 VALUES (@seller, @title, @price, @status, @desc, @img, @cat, @cond)";
@@ -66,7 +66,7 @@ namespace MovieMarketplace.Repositories
         public List<TransactionView> FetchUserOrders(int buyerId)
         {
             var orders = new List<TransactionView>();
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 string query = @"SELECT t.ID, e.Title, t.Amount, t.Status, t.ShippingAddress, t.TransactionDate 
                          FROM Transactions t 
@@ -100,7 +100,7 @@ namespace MovieMarketplace.Repositories
         public List<TransactionView> FetchSellerSales(int sellerId)
         {
             var sales = new List<TransactionView>();
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 string query = @"SELECT t.ID, e.Title, t.Amount, t.Status, t.ShippingAddress, t.TransactionDate 
                          FROM Transactions t 
@@ -132,7 +132,7 @@ namespace MovieMarketplace.Repositories
 
         public void PurchaseEquipment(int equipmentId, int buyerId, decimal price, string address)
         {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 SqlTransaction sqlTrans = conn.BeginTransaction();
@@ -172,7 +172,7 @@ namespace MovieMarketplace.Repositories
 
         public void ConfirmDelivery(int transactionId)
         {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 using (SqlTransaction transaction = conn.BeginTransaction())

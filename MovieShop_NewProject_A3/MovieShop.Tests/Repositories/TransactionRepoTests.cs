@@ -1,22 +1,22 @@
+using System.Threading.Tasks;
 using MovieShop.Repositories;
 using Xunit;
-using System.Threading.Tasks;
 
 namespace MovieShop.Tests.Repositories
 {
     public class TransactionRepoTests
     {
-        private readonly TransactionRepo _repo;
+        private readonly TransactionRepo repo;
 
         public TransactionRepoTests()
         {
-            _repo = new TransactionRepo();
+            repo = new TransactionRepo();
         }
 
         [Fact]
         public void GetTransactionsByUserId_ExecutesWithoutException()
         {
-            var resultSync = _repo.GetTransactionsByUserId(1);
+            var resultSync = repo.GetTransactionsByUserId(1);
             Assert.NotNull(resultSync);
         }
     }
