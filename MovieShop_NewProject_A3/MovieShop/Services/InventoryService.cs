@@ -14,6 +14,12 @@ namespace MovieShop.Services
 			this.inventoryRepo = inventoryRepo;
 		}
 
+		public List<Movie> GetOwnedMovies(int userId) => inventoryRepo.GetOwnedMovies(userId);
+
+		public List<MovieEvent> GetOwnedTickets(int userId) => inventoryRepo.GetOwnedTickets(userId);
+
+		public List<Equipment> GetOwnedEquipment(int userId) => inventoryRepo.GetOwnedEquipment(userId);
+
 		public IEnumerable<Movie> RemoveMovie(int userId, int movieId)
 		{
 			if (userId <= 0)

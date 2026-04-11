@@ -5,17 +5,17 @@ namespace MovieShop.Tests.Repositories
 {
     public class ReviewRepoTests
     {
-        private readonly ReviewRepo repo;
+        private readonly ReviewRepo repository;
 
         public ReviewRepoTests()
         {
-            repo = new ReviewRepo();
+            repository = new ReviewRepo();
         }
 
         [Fact]
         public void GetReviewsForMovie_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => repo.GetReviewsForMovie(1));
+            var exception = Record.Exception(() => repository.GetReviewsForMovie(1));
             Assert.Null(exception);
         }
     }

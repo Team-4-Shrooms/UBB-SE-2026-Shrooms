@@ -42,10 +42,22 @@ namespace MovieShop
             services.AddTransient<IInventoryService, InventoryService>();
             services.AddTransient<IEquipmentPurchaseService, EquipmentPurchaseService>();
             services.AddTransient<IEventTicketService, EventTicketService>();
+            services.AddTransient<IMarketplaceService, MarketplaceService>();
+            services.AddTransient<IWalletService, WalletService>();
+            services.AddTransient<IActiveSalesService, ActiveSalesService>();
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<MarketplaceViewModel>();
             services.AddTransient<SellEquipmentViewModel>();
+            services.AddTransient<MovieReviewsViewModel>();
+            services.AddTransient<MovieDetailViewModel>();
+            services.AddTransient<BuyTicketViewModel>();
+            services.AddTransient<MovieEventsViewModel>();
+            services.AddTransient<InventoryViewModel>();
+            services.AddTransient<MovieCatalogViewModel>();
+            services.AddTransient<HomeViewModel>();
+            services.AddTransient<EquipmentDetailViewModel>();
+            services.AddTransient<FlashSaleBannerViewModel>();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)

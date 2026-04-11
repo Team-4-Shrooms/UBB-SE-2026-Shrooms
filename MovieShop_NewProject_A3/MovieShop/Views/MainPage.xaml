@@ -14,24 +14,24 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border x:Name="BigSaleBanner" 
+        <Border x:Name="BigSaleBanner"
             Grid.Row="0"
             Padding="10"
             Background="#D32F2F"
-            HorizontalAlignment="Stretch" 
-            Visibility="{x:Bind FlashSaleVM.BannerVisibility, Mode=OneWay}">
+            HorizontalAlignment="Stretch"
+            Visibility="{x:Bind ViewModel.FlashSale.BannerVisibility, Mode=OneWay}">
 
             <StackPanel Spacing="5" HorizontalAlignment="Center">
-                <TextBlock Text="{x:Bind FlashSaleVM.DisplayText}"
+                <TextBlock Text="{x:Bind ViewModel.FlashSale.DisplayText, Mode=OneWay}"
                            FontWeight="Bold"
-                           FontSize="30" 
-                           Foreground="White" 
+                           FontSize="30"
+                           Foreground="White"
                            HorizontalAlignment="Center"/>
 
-                <TextBlock x:Name="BigTimerText" 
-                           Text="{x:Bind FlashSaleVM.TimerText, Mode=OneWay}" FontSize="30" 
-                           Foreground="White" 
-                           HorizontalAlignment="Center" 
+                <TextBlock x:Name="BigTimerText"
+                           Text="{x:Bind ViewModel.FlashSale.TimerText, Mode=OneWay}" FontSize="30"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
                            FontWeight="Bold"/>
 
                 <Button x:Name="DiscoverButton" 
@@ -77,6 +77,7 @@
 
                 <GridView x:Name="UndiscountedMoviesGrid"
                           Grid.Row="1"
+                          ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
                           SelectionMode="None"
                           IsItemClickEnabled="True"
                           ItemClick="UndiscountedMoviesGrid_ItemClick"

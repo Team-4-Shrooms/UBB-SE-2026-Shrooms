@@ -4,8 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:MovieShop.Models"
+    xmlns:views="using:MovieShop.Views"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <views:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Page.Resources>
 
     <Grid Background="#1E1E1E" Padding="20">
         <Grid.ColumnDefinitions>
@@ -14,27 +18,31 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Margin="0,0,20,0" Background="#252525" CornerRadius="8" Padding="12">
-            <Image Source="{Binding PosterUrl}" Stretch="UniformToFill"/>
+            <Image Source="{x:Bind ViewModel.SelectedEvent.PosterUrl, Mode=OneWay}" Stretch="UniformToFill"/>
         </Border>
 
         <StackPanel Grid.Column="1" Spacing="12">
-            <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
-            <TextBlock Text="{Binding Description}" Foreground="#CCCCCC" TextWrapping="Wrap"/>
+            <TextBlock Text="{x:Bind ViewModel.SelectedEvent.Title, Mode=OneWay}" FontSize="20" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
+            <TextBlock Text="{x:Bind ViewModel.SelectedEvent.Description, Mode=OneWay}" Foreground="#CCCCCC" TextWrapping="Wrap"/>
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Date:" FontWeight="SemiBold" Foreground="White"/>
-                <TextBlock Text="{Binding DisplayDate}" Foreground="#CCCCCC"/>
+                <TextBlock Text="{x:Bind ViewModel.SelectedEvent.DisplayDate, Mode=OneWay}" Foreground="#CCCCCC"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Location:" FontWeight="SemiBold" Foreground="White"/>
-                <TextBlock Text="{Binding Location}" Foreground="#CCCCCC"/>
+                <TextBlock Text="{x:Bind ViewModel.SelectedEvent.Location, Mode=OneWay}" Foreground="#CCCCCC"/>
             </StackPanel>
 
             <TextBlock Text="Price" FontWeight="SemiBold" Foreground="White" Margin="0,6,0,0"/>
-            <TextBlock Text="{Binding DisplayTicketPrice}" FontSize="18" FontWeight="Bold" Foreground="#1DB954"/>
+            <TextBlock Text="{x:Bind ViewModel.SelectedEvent.DisplayTicketPrice, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1DB954"/>
 
-            <Button x:Name="ConfirmButton" Content="Confirm purchase" Click="ConfirmButton_Click"/>
+            <Button Content="Confirm purchase"
+                    IsEnabled="{x:Bind ViewModel.CanConfirm, Mode=OneWay}"
+                    Click="ConfirmButton_Click"/>
 
-            <TextBlock x:Name="InsufficientText" Foreground="Red" Visibility="Collapsed">Insufficient funds.</TextBlock>
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                       Foreground="Red"
+                       Visibility="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
     </Grid>
 </Page>

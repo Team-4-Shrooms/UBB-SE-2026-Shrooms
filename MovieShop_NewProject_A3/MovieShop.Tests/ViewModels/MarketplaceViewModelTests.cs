@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using MovieShop.Models;
-using MovieShop.Repositories;
+using MovieShop.Services;
 using MovieShop.ViewModels;
 using Xunit;
 
@@ -10,57 +10,55 @@ namespace MovieShop.Tests.ViewModels
 {
     public class MarketplaceViewModelTests
     {
-        private readonly Mock<IEquipmentRepository> mockRepo;
+        private readonly Mock<IMarketplaceService> mockService;
 
         public MarketplaceViewModelTests()
         {
-            mockRepo = new Mock<IEquipmentRepository>();
+            mockService = new Mock<IMarketplaceService>();
+            mockService
+                .Setup(s => s.FilterByCategory(It.IsAny<IEnumerable<Equipment>>(), It.IsAny<string?>()))
+                .Returns((IEnumerable<Equipment> items, string? category) =>
+                    string.IsNullOrEmpty(category) || category == "All"
+                        ? items.ToList()
+                        : items.Where(item => item.Category == category).ToList());
         }
 
         [Fact]
         public void Constructor_LoadsData()
         {
-            // Arrange
             var items = new List<Equipment>
             {
                 new Equipment { ID = 1, Category = "Camera" },
                 new Equipment { ID = 2, Category = "Lighting" }
             };
-            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(items);
 
-            // Act
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Assert
             Assert.Equal(2, viewModel.AvailableItems.Count);
         }
 
         [Fact]
-        public void LoadData_NullReturn_SetsEmptyList()
+        public void LoadData_EmptyResult_SetsEmptyList()
         {
-            // Arrange
-            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns((List<Equipment>)null);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(new List<Equipment>());
 
-            // Act
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Assert
             Assert.Empty(viewModel.AvailableItems);
         }
 
         [Fact]
         public void FilterByCategory_NullOrAll_ReturnsAllItems()
         {
-            // Arrange
             var items = new List<Equipment>
             {
                 new Equipment { ID = 1, Category = "Camera" },
                 new Equipment { ID = 2, Category = "Lighting" }
             };
-            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(items);
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Act
             viewModel.FilterByCategory("All");
             Assert.Equal(2, viewModel.AvailableItems.Count);
 
@@ -74,20 +72,17 @@ namespace MovieShop.Tests.ViewModels
         [Fact]
         public void FilterByCategory_SpecificCategory_FiltersCorrectly()
         {
-            // Arrange
             var items = new List<Equipment>
             {
                 new Equipment { ID = 1, Category = "Camera" },
                 new Equipment { ID = 2, Category = "Lighting" },
                 new Equipment { ID = 3, Category = "Lighting" }
             };
-            mockRepo.Setup(r => r.FetchAvailableEquipment()).Returns(items);
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(items);
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Act
             viewModel.FilterByCategory("Lighting");
 
-            // Assert
             Assert.Equal(2, viewModel.AvailableItems.Count);
             Assert.All(viewModel.AvailableItems, item => Assert.Equal("Lighting", item.Category));
         }
@@ -95,42 +90,36 @@ namespace MovieShop.Tests.ViewModels
         [Fact]
         public void StatusMessage_UserNotLoggedIn_ReturnsLogInMessage()
         {
-            // Arrange
             SessionManager.CurrentUserID = 0;
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(new List<Equipment>());
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Act
             var message = viewModel.StatusMessage;
 
-            // Assert
             Assert.Equal("Please log in to purchase equipment.", message);
         }
 
         [Fact]
         public void StatusMessage_UserLoggedIn_ReturnsEmptyMessage()
         {
-            // Arrange
             SessionManager.CurrentUserID = 1;
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(new List<Equipment>());
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Act
             var message = viewModel.StatusMessage;
 
-            // Assert
             Assert.Empty(message);
         }
 
         [Fact]
         public void UserBalance_ReturnsSessionBalance()
         {
-            // Arrange
             SessionManager.CurrentUserBalance = 150m;
-            var viewModel = new MarketplaceViewModel(mockRepo.Object);
+            mockService.Setup(s => s.GetAvailableEquipment()).Returns(new List<Equipment>());
+            var viewModel = new MarketplaceViewModel(mockService.Object);
 
-            // Act
             var balance = viewModel.UserBalance;
 
-            // Assert
             Assert.Equal(150m, balance);
         }
     }

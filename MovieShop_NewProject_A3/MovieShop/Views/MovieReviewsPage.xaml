@@ -19,21 +19,21 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Content=""
+            <Button Content=""
                     FontFamily="Segoe MDL2 Assets"
                     FontSize="24"
                     Click="BackButton_Click"
                     Background="Transparent"
                     Foreground="White"/>
-            <TextBlock x:Name="TitleBlock"
+            <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                        Grid.Column="1"
                        FontSize="28"
                        FontWeight="Bold"
                        Foreground="White"
                        VerticalAlignment="Center"/>
-            <Button x:Name="AddReviewButton"
-                    Grid.Column="2"
+            <Button Grid.Column="2"
                     Content="Add review"
+                    IsEnabled="{x:Bind ViewModel.CanAddReview, Mode=OneWay}"
                     Click="AddReviewButton_Click"
                     CornerRadius="8"
                     Padding="14,10"
@@ -41,7 +41,7 @@
                     Foreground="White"/>
         </Grid>
 
-        <ListView x:Name="ReviewsList"
+        <ListView ItemsSource="{x:Bind ViewModel.Reviews, Mode=OneWay}"
                   Grid.Row="1"
                   SelectionMode="None">
             <ListView.ItemTemplate>
@@ -63,4 +63,3 @@
         </ListView>
     </Grid>
 </Page>
-

@@ -6,17 +6,17 @@ namespace MovieShop.Tests.Repositories
 {
     public class TransactionRepoTests
     {
-        private readonly TransactionRepo repo;
+        private readonly TransactionRepo repository;
 
         public TransactionRepoTests()
         {
-            repo = new TransactionRepo();
+            repository = new TransactionRepo();
         }
 
         [Fact]
         public void GetTransactionsByUserId_ExecutesWithoutException()
         {
-            var resultSync = repo.GetTransactionsByUserId(1);
+            var resultSync = repository.GetTransactionsByUserId(1);
             Assert.NotNull(resultSync);
         }
     }

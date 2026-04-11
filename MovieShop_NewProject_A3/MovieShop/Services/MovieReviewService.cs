@@ -1,155 +1,70 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.SqlClient;
 using MovieShop.Models;
 using MovieShop.Repositories;
-using MovieShop.Services;
 
-public class MovieReviewService : IMovieReviewService
+namespace MovieShop.Services
 {
-    private readonly IDatabaseSingleton db;
-    private readonly IReviewRepository reviewRepo;
+    public class MovieReviewService : IMovieReviewService
+    {
+        private const int MinStarRating = 1;
+        private const int MaxStarRating = 10;
 
-    public MovieReviewService(
-        IDatabaseSingleton db,
-        IReviewRepository reviewRepo)
-    {
-        this.db = db;
-        this.reviewRepo = reviewRepo;
-    }
+        private readonly IReviewRepository reviewRepo;
 
-    public List<MovieReview> GetReviewsForMovie(int movieId)
-    {
-        return reviewRepo.GetReviewsForMovie(movieId);
-    }
-    public int GetReviewCount(int movieId)
-    {
-        db.OpenConnection();
-        try
+        public MovieReviewService(IReviewRepository reviewRepo)
         {
-            const string query = @"SELECT COUNT(*) FROM Reviews WHERE MovieID = @mid";
-            using var cmd = new SqlCommand(query, db.Connection);
-            cmd.Parameters.AddWithValue("@mid", movieId);
-
-            using var reader = cmd.ExecuteReader();
-            int count = (int)cmd.ExecuteScalar();
-
-            return count;
-        }
-        finally
-        {
-            db.CloseConnection();
-        }
-    }
-
-    public Dictionary<int, int> GetReviewCounts(IEnumerable<int> movieIds)
-    {
-        var result = new Dictionary<int, int>();
-
-        var ids = movieIds.Distinct().ToList();
-        if (ids.Count == 0)
-        {
-            return result;
+            this.reviewRepo = reviewRepo;
         }
 
-        var paramNames = ids.Select((_, i) => $"@id{i}").ToArray();
-        var inClause = string.Join(",", paramNames);
-
-        string query = $@"SELECT MovieID, COUNT(*) 
-        FROM Reviews 
-        WHERE MovieID IN ({inClause}) 
-        GROUP BY MovieID";
-
-        db.OpenConnection();
-        try
+        public List<MovieReview> GetReviewsForMovie(int movieId)
         {
-            using var cmd = new SqlCommand(query, db.Connection);
+            return reviewRepo.GetReviewsForMovie(movieId);
+        }
 
-            for (int i = 0; i < ids.Count; i++)
+        public int GetReviewCount(int movieId)
+        {
+            return reviewRepo.GetReviewCount(movieId);
+        }
+
+        public Dictionary<int, int> GetReviewCounts(IEnumerable<int> movieIds)
+        {
+            return reviewRepo.GetReviewCounts(movieIds);
+        }
+
+        public string BuildStarDistributionTooltip(int movieId)
+        {
+            var counts = reviewRepo.GetStarRatingBuckets(movieId);
+
+            int total = counts.Skip(1).Sum();
+            if (total == 0)
             {
-                cmd.Parameters.AddWithValue(paramNames[i], ids[i]);
+                return "No reviews yet.";
             }
 
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            var lines = new List<string> { "Rating distribution:" };
+            for (int i = MaxStarRating; i >= MinStarRating; i--)
             {
-                int movieId = reader.GetInt32(0);
-                int count = reader.GetInt32(1);
-
-                result[movieId] = count;
+                lines.Add($"{i}: {counts[i]}");
             }
-        }
-        finally
-        {
-            db.CloseConnection();
+
+            return string.Join("\n", lines);
         }
 
-        return result;
-    }
-
-    public string BuildStarDistributionTooltip(int movieId)
-    {
-        var counts = new int[11];
-
-        db.OpenConnection();
-        try
+        public void AddReview(int movieId, int userId, int rating, string? comment)
         {
-            const string query = @"SELECT StarRating FROM Reviews WHERE MovieID = @mid";
-            using var cmd = new SqlCommand(query, db.Connection);
-            cmd.Parameters.AddWithValue("@mid", movieId);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            if (userId <= 0)
             {
-                var rating = reader.GetInt32(0);
-                var bucket = (int)Math.Floor((double)rating);
-
-                if (bucket < 1)
-                {
-                    bucket = 1;
-                }
-
-                if (bucket > 10)
-                {
-                    bucket = 10;
-                }
-
-                counts[bucket]++;
+                throw new InvalidOperationException("You must be logged in to add a review.");
             }
-        }
-        finally
-        {
-            db.CloseConnection();
-        }
 
-        int total = counts.Skip(1).Sum();
-        if (total == 0)
-        {
-            return "No reviews yet.";
+            if (rating < MinStarRating || rating > MaxStarRating)
+            {
+                throw new InvalidOperationException($"Rating must be between {MinStarRating} and {MaxStarRating}.");
+            }
+
+            reviewRepo.AddReview(movieId, userId, rating, comment);
         }
-
-        var lines = new List<string> { "Rating distribution:" };
-        for (int i = 10; i >= 1; i--)
-        {
-            lines.Add($"{i}: {counts[i]}");
-        }
-
-        return string.Join("\n", lines);
-    }
-
-    public void AddReview(int movieId, int userId, int rating, string? comment)
-    {
-        if (userId <= 0)
-        {
-            throw new InvalidOperationException("You must be logged in to add a review.");
-        }
-
-        if (rating < 1 || rating > 10)
-        {
-            throw new InvalidOperationException("Rating must be between 1 and 10.");
-        }
-
-        reviewRepo.AddReview(movieId, userId, rating, comment);
     }
 }

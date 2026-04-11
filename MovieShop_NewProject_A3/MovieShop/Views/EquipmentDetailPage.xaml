@@ -34,34 +34,37 @@
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="15" Margin="20,0,0,0">
-                    <TextBlock x:Name="TitleLabel" FontSize="42" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
+                    <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" FontSize="42" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Border Background="#333333" CornerRadius="4" Padding="10,4">
-                            <TextBlock x:Name="CategoryLabel" FontSize="14" Foreground="#AAAAAA"/>
+                            <TextBlock Text="{x:Bind ViewModel.Category, Mode=OneWay}" FontSize="14" Foreground="#AAAAAA"/>
                         </Border>
                         <Border Background="#4444FF" CornerRadius="4" Padding="10,4">
-                            <TextBlock x:Name="ConditionLabel" FontSize="14" Foreground="White" FontWeight="Bold"/>
+                            <TextBlock Text="{x:Bind ViewModel.Condition, Mode=OneWay}" FontSize="14" Foreground="White" FontWeight="Bold"/>
                         </Border>
                     </StackPanel>
 
-                    <TextBlock x:Name="DescriptionLabel" FontSize="18" Foreground="LightGray" FontStyle="Italic" TextWrapping="Wrap" Margin="0,10"/>
+                    <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}" FontSize="18" Foreground="LightGray" FontStyle="Italic" TextWrapping="Wrap" Margin="0,10"/>
 
-                    <TextBlock x:Name="PriceLabel" FontSize="36" Foreground="#4CAF50" FontWeight="Bold" Margin="0,15,0,0"/>
+                    <TextBlock Text="{x:Bind ViewModel.PriceText, Mode=OneWay}" FontSize="36" Foreground="#4CAF50" FontWeight="Bold" Margin="0,15,0,0"/>
 
-                    <Button x:Name="ConfirmBuyButton" 
-                            Content="Confirm Purchase" 
+                    <Button Content="Confirm Purchase"
                             Click="BuyButton_Click"
-                            Width="280" 
-                            Height="70" 
-                            FontSize="22" 
+                            IsEnabled="{x:Bind ViewModel.CanAfford, Mode=OneWay}"
+                            Width="280"
+                            Height="70"
+                            FontSize="22"
                             FontWeight="Bold"
-                            Background="DarkGreen" 
-                            Foreground="White" 
-                            CornerRadius="10" 
+                            Background="DarkGreen"
+                            Foreground="White"
+                            CornerRadius="10"
                             Margin="0,20,0,0"/>
 
-                    <TextBlock x:Name="ErrorText" Foreground="#FF5252" Visibility="Collapsed" FontSize="14"/>
+                    <TextBlock Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
+                               Visibility="{x:Bind ViewModel.ErrorVisibility, Mode=OneWay}"
+                               Foreground="#FF5252"
+                               FontSize="14"/>
                 </StackPanel>
             </Grid>
         </Grid>

@@ -7,7 +7,7 @@ using MovieShop.Models;
 
 namespace MovieShop.Services
 {
-    internal interface IMovieCatalogService
+    public interface IMovieCatalogService
     {
         void ApplyDiscount(Movie movie);
         (List<Movie> Movies, Dictionary<int, int> ReviewCounts) GetUndiscountedMovies();

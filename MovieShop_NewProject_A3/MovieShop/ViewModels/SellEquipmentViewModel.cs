@@ -1,19 +1,17 @@
-using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.DependencyInjection;
 using MovieShop.Models;
-using MovieShop.Repositories;
+using MovieShop.Services;
 
 namespace MovieShop.ViewModels
 {
     public class SellEquipmentViewModel : INotifyPropertyChanged
     {
-        private readonly IEquipmentRepository repo;
+        private readonly IMarketplaceService marketplaceService;
 
-        public SellEquipmentViewModel(IEquipmentRepository equipmentRepository)
+        public SellEquipmentViewModel(IMarketplaceService marketplaceService)
         {
-            this.repo = equipmentRepository;
+            this.marketplaceService = marketplaceService;
         }
 
         private string newItemTitle = string.Empty;
@@ -92,7 +90,7 @@ namespace MovieShop.ViewModels
                 Status = EquipmentStatus.Available
             };
 
-            repo.ListItem(newItem);
+            marketplaceService.ListItem(newItem);
         }
 
         private void ValidateForm()

@@ -5,17 +5,17 @@ namespace MovieShop.Tests.Repositories
 {
     public class EventRepoTests
     {
-        private readonly EventRepo repo;
+        private readonly EventRepo repository;
 
         public EventRepoTests()
         {
-            repo = new EventRepo();
+            repository = new EventRepo();
         }
 
         [Fact]
         public void GetAllEvents_ExecutesAndReturnsList()
         {
-            var result = repo.GetAllEvents();
+            var result = repository.GetAllEvents();
             Assert.NotNull(result);
         }
     }

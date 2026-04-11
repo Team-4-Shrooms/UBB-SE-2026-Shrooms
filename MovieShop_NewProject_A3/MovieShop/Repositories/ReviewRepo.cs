@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.SqlClient;
 using MovieShop.Models;
 
@@ -7,7 +8,21 @@ namespace MovieShop.Repositories
 {
     public sealed class ReviewRepo : IReviewRepository
     {
-        private readonly DatabaseSingleton db = DatabaseSingleton.Instance;
+        private const int StarRatingBucketCount = 11;
+        private const int MinStarRating = 1;
+        private const int MaxStarRating = 10;
+
+        private readonly IDatabaseSingleton db;
+
+        public ReviewRepo()
+            : this(DatabaseSingleton.Instance)
+        {
+        }
+
+        public ReviewRepo(IDatabaseSingleton db)
+        {
+            this.db = db;
+        }
 
         public List<MovieReview> GetReviewsForMovie(int movieId)
         {
@@ -65,6 +80,105 @@ namespace MovieShop.Repositories
                 db.CloseConnection();
             }
         }
+
+        public int GetReviewCount(int movieId)
+        {
+            const string query = @"SELECT COUNT(*) FROM Reviews WHERE MovieID = @mid";
+
+            db.OpenConnection();
+            try
+            {
+                using var cmd = new SqlCommand(query, db.Connection);
+                cmd.Parameters.AddWithValue("@mid", movieId);
+                var result = cmd.ExecuteScalar();
+                return result is int count ? count : Convert.ToInt32(result);
+            }
+            finally
+            {
+                db.CloseConnection();
+            }
+        }
+
+        public Dictionary<int, int> GetReviewCounts(IEnumerable<int> movieIds)
+        {
+            var result = new Dictionary<int, int>();
+
+            var ids = movieIds.Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return result;
+            }
+
+            var paramNames = ids.Select((_, index) => $"@id{index}").ToArray();
+            var inClause = string.Join(",", paramNames);
+
+            string query = $@"SELECT MovieID, COUNT(*)
+                              FROM Reviews
+                              WHERE MovieID IN ({inClause})
+                              GROUP BY MovieID";
+
+            db.OpenConnection();
+            try
+            {
+                using var cmd = new SqlCommand(query, db.Connection);
+
+                for (int index = 0; index < ids.Count; index++)
+                {
+                    cmd.Parameters.AddWithValue(paramNames[index], ids[index]);
+                }
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    int movieId = reader.GetInt32(0);
+                    int count = reader.GetInt32(1);
+                    result[movieId] = count;
+                }
+            }
+            finally
+            {
+                db.CloseConnection();
+            }
+
+            return result;
+        }
+
+        public int[] GetStarRatingBuckets(int movieId)
+        {
+            var counts = new int[StarRatingBucketCount];
+            const string query = @"SELECT StarRating FROM Reviews WHERE MovieID = @mid";
+
+            db.OpenConnection();
+            try
+            {
+                using var cmd = new SqlCommand(query, db.Connection);
+                cmd.Parameters.AddWithValue("@mid", movieId);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var rating = reader.GetInt32(0);
+                    var bucket = (int)Math.Floor((double)rating);
+
+                    if (bucket < MinStarRating)
+                    {
+                        bucket = MinStarRating;
+                    }
+
+                    if (bucket > MaxStarRating)
+                    {
+                        bucket = MaxStarRating;
+                    }
+
+                    counts[bucket]++;
+                }
+            }
+            finally
+            {
+                db.CloseConnection();
+            }
+
+            return counts;
+        }
     }
 }
-

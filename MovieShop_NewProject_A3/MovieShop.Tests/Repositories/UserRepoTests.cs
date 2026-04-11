@@ -5,25 +5,25 @@ namespace MovieShop.Tests.Repositories
 {
     public class UserRepoTests
     {
-        private readonly UserRepo repo;
+        private readonly UserRepo repository;
 
         public UserRepoTests()
         {
-            repo = new UserRepo();
+            repository = new UserRepo();
         }
 
         [Fact]
         public void GetBalance_ValidUser_NoException()
         {
             // Integration test hitting actual database
-            var exception = Record.Exception(() => repo.GetBalance(1));
+            var exception = Record.Exception(() => repository.GetBalance(1));
             Assert.Null(exception);
         }
 
         [Fact]
         public void UpdateBalance_ValidUser_NoException()
         {
-            var exception = Record.Exception(() => repo.UpdateBalance(1, 5000m));
+            var exception = Record.Exception(() => repository.UpdateBalance(1, 5000m));
             Assert.Null(exception);
         }
     }

@@ -1,7 +1,6 @@
-using System;
 using Moq;
 using MovieShop.Models;
-using MovieShop.Repositories;
+using MovieShop.Services;
 using MovieShop.ViewModels;
 using Xunit;
 
@@ -9,11 +8,11 @@ namespace MovieShop.Tests.ViewModels
 {
     public class SellEquipmentViewModelTests
     {
-        private readonly Mock<IEquipmentRepository> mockEquipmentRepo;
+        private readonly Mock<IMarketplaceService> mockMarketplaceService;
 
         public SellEquipmentViewModelTests()
         {
-            mockEquipmentRepo = new Mock<IEquipmentRepository>();
+            mockMarketplaceService = new Mock<IMarketplaceService>();
             SessionManager.CurrentUserID = 1;
         }
 
@@ -26,9 +25,8 @@ namespace MovieShop.Tests.ViewModels
         public void ValidateForm_VariousInputs_UpdatesCanPostAndErrors(string title, string priceInput, bool expectedCanPost, decimal expectedValidatedPrice, string expectedError)
         {
             // Arrange
-            var viewModel = new SellEquipmentViewModel(mockEquipmentRepo.Object);
+            var viewModel = new SellEquipmentViewModel(mockMarketplaceService.Object);
 
-            // Act
             viewModel.NewItemTitle = title;
             viewModel.PriceInput = priceInput;
 
@@ -49,7 +47,7 @@ namespace MovieShop.Tests.ViewModels
         public void SubmitListing_CanPost_SavesItemToRepository()
         {
             // Arrange
-            var viewModel = new SellEquipmentViewModel(mockEquipmentRepo.Object)
+            var viewModel = new SellEquipmentViewModel(mockMarketplaceService.Object)
             {
                 NewItemTitle = "Camera",
                 NewItemDesc = "Great Camera",
@@ -60,7 +58,7 @@ namespace MovieShop.Tests.ViewModels
             viewModel.SubmitListing("Electronics", "New", "image.png");
 
             // Assert
-            mockEquipmentRepo.Verify(r => r.ListItem(It.Is<Equipment>(e =>
+            mockMarketplaceService.Verify(s => s.ListItem(It.Is<Equipment>(e =>
                 e.Title == "Camera" &&
                 e.Description == "Great Camera" &&
                 e.Price == 100m &&

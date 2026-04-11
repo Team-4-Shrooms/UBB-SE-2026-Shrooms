@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using MovieShop.Models;
-using MovieShop.Repositories;
+using MovieShop.Services;
 using CommunityToolkit.Mvvm.Input;
 
 namespace MovieShop.ViewModels
@@ -138,15 +138,13 @@ namespace MovieShop.ViewModels
         public IRelayCommand TopUpCommand { get; }
         public IAsyncRelayCommand LoadTransactionsCommand { get; }
 
-        // --- Repos ---
-        private readonly ITransactionRepository transactionRepo;
-        private readonly IUserRepository userRepo;
+        // --- Services ---
+        private readonly IWalletService walletService;
 
         // --- Constructor ---
-        public WalletViewModel(int userID, decimal currentBalance, IUserRepository userRepo, ITransactionRepository transactionRepo)
+        public WalletViewModel(int userID, decimal currentBalance, IWalletService walletService)
         {
-            this.userRepo = userRepo;
-            this.transactionRepo = transactionRepo;
+            this.walletService = walletService;
             currentUserID = userID;
             balance = currentBalance;
             transactions = new ObservableCollection<Transaction>();
@@ -162,7 +160,7 @@ namespace MovieShop.ViewModels
 
             try
             {
-                var result = await Task.Run(() => transactionRepo.GetTransactionsByUserId(currentUserID));
+                var result = await Task.Run(() => walletService.GetTransactionsByUserId(currentUserID));
 
                 Transactions.Clear();
                 foreach (var transaction in result)
@@ -191,7 +189,7 @@ namespace MovieShop.ViewModels
                 Timestamp = System.DateTime.Now
             };
 
-            Task.Run(() => transactionRepo.LogTransaction(transaction));
+            Task.Run(() => walletService.LogTransaction(transaction));
 
             Transactions.Insert(0, transaction);
         }
@@ -300,7 +298,7 @@ namespace MovieShop.ViewModels
         private void UpdateBalance(decimal amount)
         {
             Balance += amount;
-            userRepo.UpdateBalance(currentUserID, Balance);
+            walletService.UpdateBalance(currentUserID, Balance);
         }
 
         private void ClearForm()
@@ -315,7 +313,7 @@ namespace MovieShop.ViewModels
         public void OnTransactionCompleted(decimal amount)
         {
             Balance += amount;
-            userRepo.UpdateBalance(currentUserID, Balance);
+            walletService.UpdateBalance(currentUserID, Balance);
             _ = LoadTransactionsAsync();
         }
     }

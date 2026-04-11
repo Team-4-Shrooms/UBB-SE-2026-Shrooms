@@ -15,7 +15,7 @@
 
         <Pivot Grid.Row="1">
             <PivotItem Header="Movies">
-                <GridView x:Name="MoviesGrid"
+                <GridView ItemsSource="{x:Bind ViewModel.OwnedMovies, Mode=OneWay}"
                           SelectionMode="None"
                           IsItemClickEnabled="True"
                           ItemClick="MoviesGrid_ItemClick"
@@ -47,7 +47,7 @@
                 </GridView>
             </PivotItem>
             <PivotItem Header="Tickets">
-                <GridView x:Name="TicketsGrid" SelectionMode="None" Padding="0">
+                <GridView ItemsSource="{x:Bind ViewModel.OwnedTickets, Mode=OneWay}" SelectionMode="None" Padding="0">
                     <GridView.ItemContainerStyle>
                         <Style TargetType="GridViewItem">
                             <Setter Property="Margin" Value="8"/>
@@ -72,7 +72,7 @@
                 </GridView>
             </PivotItem>
             <PivotItem Header="Equipment">
-                <GridView x:Name="EquipmentGrid" SelectionMode="None" Padding="0">
+                <GridView ItemsSource="{x:Bind ViewModel.OwnedEquipment, Mode=OneWay}" SelectionMode="None" Padding="0">
                     <GridView.ItemContainerStyle>
                         <Style TargetType="GridViewItem">
                             <Setter Property="Margin" Value="8"/>

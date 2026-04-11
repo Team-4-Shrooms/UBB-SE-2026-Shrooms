@@ -36,6 +36,12 @@ namespace MovieShop.Services
             SessionManager.CurrentUserBalance = userRepo.GetBalance(userId);
         }
 
+        public MovieEvent? GetEventById(int eventId) => eventRepo.GetEventById(eventId);
+
+        public List<MovieEvent> GetAllEvents() => eventRepo.GetAllEvents();
+
+        public List<MovieEvent> GetEventsForMovie(int movieId) => eventRepo.GetEventsForMovie(movieId);
+
         public List<MovieEvent> FilterEvents(List<MovieEvent> events, string searchQuery, string dateFilter)
         {
             var filtered = events.AsEnumerable();

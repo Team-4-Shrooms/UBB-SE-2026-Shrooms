@@ -3,3 +3,13 @@ MovieShop/obj/
 MovieShop/.vscode
 .vs
 Generated\ Files/
+
+# Build outputs (any project)
+**/bin/
+**/obj/
+
+# Tooling / local assistant artifacts
+.claude/
+CLAUDE.md
+graphify-out/
+memory/

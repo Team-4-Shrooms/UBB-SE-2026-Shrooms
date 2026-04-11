@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.Input;
 using MovieShop.Models;
-using MovieShop.Repositories;
 using MovieShop.Services;
 
 namespace MovieShop.ViewModels
@@ -26,7 +25,7 @@ namespace MovieShop.ViewModels
         }
 
         public FlashSaleViewModel FlashSaleVM { get; set; }
-        private readonly IActiveSalesRepository salesRepo;
+        private readonly IActiveSalesService activeSalesService;
         private readonly ISaleService saleService;
 
         private decimal balance;
@@ -44,8 +43,7 @@ namespace MovieShop.ViewModels
         public string DisplayBalance => Balance.ToString("C");
 
         private readonly int currentUserID = SessionManager.CurrentUserID;
-        private readonly IUserRepository userRepo;
-        private readonly ITransactionRepository transactionRepo;
+        private readonly IWalletService walletService;
 
         private WalletViewModel walletViewModel;
 
@@ -55,22 +53,21 @@ namespace MovieShop.ViewModels
         public IRelayCommand NavigateToTicketsCommand { get; }
         public IRelayCommand NavigateToInventoryCommand { get; }
 
-        public MainViewModel(IUserRepository userRepo, IActiveSalesRepository salesRepo, ITransactionRepository transactionRepo, ISaleService saleService)
+        public MainViewModel(IWalletService walletService, IActiveSalesService activeSalesService, ISaleService saleService)
         {
-            this.userRepo = userRepo;
-            this.salesRepo = salesRepo;
-            this.transactionRepo = transactionRepo;
+            this.walletService = walletService;
+            this.activeSalesService = activeSalesService;
             this.saleService = saleService;
             if (currentUserID > 0)
             {
-                Balance = userRepo.GetBalance(currentUserID);
+                Balance = walletService.GetBalance(currentUserID);
             }
             else
             {
                 Balance = 0;
             }
 
-            var currentSales = salesRepo.GetCurrentSales();
+            var currentSales = activeSalesService.GetCurrentSales();
             var activeSale = currentSales.FirstOrDefault();
 
             DateTime expiry = activeSale?.EndTime ?? DateTime.Now;
@@ -82,7 +79,7 @@ namespace MovieShop.ViewModels
 
             saleService.CurrentSale = this.FlashSaleVM;
 
-            walletViewModel = new WalletViewModel(currentUserID, Balance, userRepo, transactionRepo);
+            walletViewModel = new WalletViewModel(currentUserID, Balance, walletService);
             walletViewModel.PropertyChanged += (sender, propertyChangedEvent) =>
             {
                 if (propertyChangedEvent.PropertyName == nameof(WalletViewModel.Balance))
@@ -109,7 +106,7 @@ namespace MovieShop.ViewModels
                 return;
             }
 
-            var refreshedBalance = userRepo.GetBalance(currentUserID);
+            var refreshedBalance = walletService.GetBalance(currentUserID);
             Balance = refreshedBalance;
             walletViewModel.Balance = refreshedBalance;
         }

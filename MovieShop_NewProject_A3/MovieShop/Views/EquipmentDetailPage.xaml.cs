@@ -3,116 +3,85 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MovieShop.Models;
-using MovieShop.Repositories;
-using MovieShop.Services;
+using MovieShop.ViewModels;
 
 namespace MovieShop.Views
 {
     public sealed partial class EquipmentDetailPage : Page
     {
-        private readonly IEquipmentPurchaseService purchaseService = App.Services.GetRequiredService<IEquipmentPurchaseService>();
-        private Equipment selectedItem;
+        public EquipmentDetailViewModel ViewModel { get; } = App.Services.GetRequiredService<EquipmentDetailViewModel>();
 
         public EquipmentDetailPage(Equipment item)
         {
             this.InitializeComponent();
-            selectedItem = item;
-            PopulateUI();
+            ViewModel.Initialize(item);
+            LoadImage();
         }
 
-        private void PopulateUI()
+        private void LoadImage()
         {
-            if (selectedItem == null)
+            if (ViewModel.Equipment == null || string.IsNullOrEmpty(ViewModel.ImageUrl))
             {
                 return;
             }
 
-            TitleLabel.Text = selectedItem.Title;
-            DescriptionLabel.Text = selectedItem.Description ?? "No description available.";
-            CategoryLabel.Text = selectedItem.Category;
-            ConditionLabel.Text = selectedItem.Condition;
-            PriceLabel.Text = $"Price: ${selectedItem.Price:F2}";
-
-            if (!string.IsNullOrEmpty(selectedItem.ImageUrl))
+            try
             {
-                try
-                {
-                    ItemImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(selectedItem.ImageUrl));
-                }
-                catch (UriFormatException ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[EquipmentDetailPage] Invalid image URL '{selectedItem.ImageUrl}': {ex.Message}");
-                }
+                ItemImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(ViewModel.ImageUrl));
             }
-
-            var canAfford = purchaseService.CanAfford(SessionManager.CurrentUserID, selectedItem.Price);
-            ConfirmBuyButton.IsEnabled = canAfford;
-            ErrorText.Visibility = canAfford ? Visibility.Collapsed : Visibility.Visible;
-            if (!canAfford)
+            catch (UriFormatException ex)
             {
-                ErrorText.Text = $"Insufficient funds. Balance: {SessionManager.CurrentUserBalance:C} — Price: {selectedItem.Price:C}";
+                System.Diagnostics.Debug.WriteLine($"[EquipmentDetailPage] Invalid image URL '{ViewModel.ImageUrl}': {ex.Message}");
             }
         }
 
         private void BuyButton_Click(object sender, RoutedEventArgs e) => ShippingModal.Visibility = Visibility.Visible;
+
         private void CancelShipping_Click(object sender, RoutedEventArgs e) => ShippingModal.Visibility = Visibility.Collapsed;
 
         private async void ConfirmShipping_Click(object sender, RoutedEventArgs e)
         {
             ModalErrorText.Visibility = Visibility.Collapsed;
 
-            string error = purchaseService.ValidateShippingDetails(
+            var validationError = ViewModel.ValidateShipping(
                 ModalNameInput.Text,
                 ModalAddressInput.Text,
                 ModalPhoneInput.Text);
 
-            if (!string.IsNullOrEmpty(error))
+            if (validationError != null)
+            {
+                ModalErrorText.Text = validationError;
+                ModalErrorText.Visibility = Visibility.Visible;
+                return;
+            }
+
+            if (!ViewModel.TryPurchase(ModalAddressInput.Text, out var error))
             {
                 ModalErrorText.Text = error;
                 ModalErrorText.Visibility = Visibility.Visible;
                 return;
             }
 
-            try
+            if (App.CurrentWindow?.Content is NavigationPage navPage)
             {
-                purchaseService.PurchaseEquipment(
-                    selectedItem.ID,
-                    SessionManager.CurrentUserID,
-                    selectedItem.Price,
-                    ModalAddressInput.Text);
-
-                if (App.CurrentWindow?.Content is NavigationPage navPage)
-                {
-                    navPage.ViewModel.RefreshWallet();
-                }
-
-                ShippingModal.Visibility = Visibility.Collapsed;
-
-                var dialog = new ContentDialog
-                {
-                    Title = "Purchase successful",
-                    Content = $"\"{selectedItem.Title}\" has been purchased and added to your inventory.",
-                    PrimaryButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = XamlRoot
-                };
-                await dialog.ShowAsync();
-
-                if (this.Parent is ContentControl contentArea)
-                {
-                    contentArea.Content = new MarketplacePage();
-                }
+                navPage.ViewModel.RefreshWallet();
             }
-            catch (InvalidOperationException ex)
+
+            ShippingModal.Visibility = Visibility.Collapsed;
+
+            var dialog = new ContentDialog
             {
-                ModalErrorText.Text = ex.Message;
-                ModalErrorText.Visibility = Visibility.Visible;
-            }
-            catch (Exception ex)
+                Title = "Purchase successful",
+                Content = $"\"{ViewModel.Title}\" has been purchased and added to your inventory.",
+                PrimaryButtonText = "OK",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = XamlRoot
+            };
+            await dialog.ShowAsync();
+
+            if (this.Parent is ContentControl contentArea)
             {
-                System.Diagnostics.Debug.WriteLine($"[EquipmentDetailPage] Unexpected purchase error: {ex}");
-                ModalErrorText.Text = "Transaction failed: " + ex.Message;
-                ModalErrorText.Visibility = Visibility.Visible;
+                contentArea.Content = new MarketplacePage();
             }
         }
 

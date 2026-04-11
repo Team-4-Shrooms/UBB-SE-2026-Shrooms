@@ -32,16 +32,16 @@
         </StackPanel>
 
         <Grid Grid.Column="1">
-            <TextBlock x:Name="FlashSaleEndedText"
-                       Text="The flash sale has ended!"
+            <TextBlock Text="The flash sale has ended!"
                        Foreground="White"
                        FontSize="28"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       Visibility="Collapsed"/>
+                       Visibility="{x:Bind ViewModel.SaleEndedVisibility, Mode=OneWay}"/>
 
-            <GridView x:Name="MoviesGrid"
+            <GridView ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
+                      Visibility="{x:Bind ViewModel.CatalogVisibility, Mode=OneWay}"
                       SelectionMode="None"
                       IsItemClickEnabled="True"
                       ItemClick="MoviesGrid_ItemClick"

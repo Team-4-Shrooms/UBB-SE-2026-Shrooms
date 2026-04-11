@@ -10,5 +10,11 @@ namespace MovieShop.Services
         void PurchaseTicket(int userId, MovieEvent movieEvent);
 
         List<MovieEvent> FilterEvents(List<MovieEvent> events, string searchQuery, string dateFilter);
+
+        MovieEvent? GetEventById(int eventId);
+
+        List<MovieEvent> GetAllEvents();
+
+        List<MovieEvent> GetEventsForMovie(int movieId);
     }
 }

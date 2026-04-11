@@ -1,23 +1,18 @@
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using MovieShop.Models;
-using MovieShop.Services;
+using MovieShop.ViewModels;
 using Windows.UI;
 
 namespace MovieShop.Views
 {
     public sealed partial class MainPage : UserControl
     {
-        private readonly ISaleService saleService = App.Services.GetRequiredService<ISaleService>();
-        public ViewModels.FlashSaleViewModel? FlashSaleVM => saleService.CurrentSale;
-        private List<Movie> sourceMovies = new ();
-        private Dictionary<int, int> reviewCountByMovieId = new ();
-        private readonly IMovieCatalogService catalogService = App.Services.GetRequiredService<IMovieCatalogService>();
+        public HomeViewModel ViewModel { get; } = App.Services.GetRequiredService<HomeViewModel>();
 
         private readonly SolidColorBrush hoverBorderBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBorderRed, ColorConstants.HoverBorderGreen, ColorConstants.HoverBorderBlue));
         private readonly SolidColorBrush hoverBackgroundBrush = new SolidColorBrush(Color.FromArgb(ColorConstants.FullAlpha, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray, ColorConstants.HoverBackgroundGray));
@@ -28,12 +23,16 @@ namespace MovieShop.Views
         {
             InitializeComponent();
 
-            FlashSaleVM.PropertyChanged += FlashSaleVM_PropertyChanged!;
-            UpdateBigBanner(FlashSaleVM.TimerText, FlashSaleVM.IsActive);
+            if (ViewModel.FlashSale != null)
+            {
+                ViewModel.FlashSale.PropertyChanged += FlashSale_PropertyChanged!;
+                UpdateBigBanner(ViewModel.FlashSale.TimerText, ViewModel.FlashSale.IsActive);
+            }
 
-            SearchBox.TextChanged += (_, _) => ApplyFilterAndSort();
+            SearchBox.TextChanged += (_, _) => ViewModel.SearchQuery = SearchBox.Text ?? string.Empty;
             SortAscPrice.IsChecked = true;
-            RefreshUndiscountedMovies();
+            ViewModel.SortOption = "PriceAsc";
+            ViewModel.Load();
         }
 
         public void UpdateBigBanner(string time, bool isActive)
@@ -62,66 +61,44 @@ namespace MovieShop.Views
             }
         }
 
-        private void FlashSaleVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void FlashSale_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                UpdateBigBanner(FlashSaleVM.TimerText, FlashSaleVM.IsActive);
-
-                if (e.PropertyName == nameof(ViewModels.FlashSaleViewModel.IsActive))
+                var sale = ViewModel.FlashSale;
+                if (sale == null)
                 {
-                    RefreshUndiscountedMovies();
+                    return;
+                }
+
+                UpdateBigBanner(sale.TimerText, sale.IsActive);
+
+                if (e.PropertyName == nameof(FlashSaleViewModel.IsActive))
+                {
+                    ViewModel.Load();
                 }
             });
         }
 
-        private void RefreshUndiscountedMovies()
-        {
-            var (movies, reviewCounts) = catalogService.GetUndiscountedMovies();
-
-            sourceMovies = movies;
-            reviewCountByMovieId = reviewCounts;
-
-            ApplyFilterAndSort();
-        }
-
-        private void ApplyFilterAndSort()
-        {
-            var searchQuery = (SearchBox.Text ?? string.Empty).Trim();
-            var sortOption = GetSelectedSortOption();
-
-            var sortedMovies = catalogService.FilterAndSort(sourceMovies, searchQuery, sortOption);
-            UndiscountedMoviesGrid.ItemsSource = sortedMovies
-                .Select(movie => new MovieCatalogItem(movie, reviewCountByMovieId.TryGetValue(movie.ID, out var count) ? count : 0))
-                .ToList();
-        }
-
-        private string GetSelectedSortOption()
+        private void SortOption_Changed(object sender, RoutedEventArgs e)
         {
             if (SortAscPrice.IsChecked == true)
             {
-                return "PriceAsc";
+                ViewModel.SortOption = "PriceAsc";
             }
-
-            if (SortDescPrice.IsChecked == true)
+            else if (SortDescPrice.IsChecked == true)
             {
-                return "PriceDesc";
+                ViewModel.SortOption = "PriceDesc";
             }
-
-            if (SortHighRating.IsChecked == true)
+            else if (SortHighRating.IsChecked == true)
             {
-                return "RatingHigh";
+                ViewModel.SortOption = "RatingHigh";
             }
-
-            if (SortLowRating.IsChecked == true)
+            else if (SortLowRating.IsChecked == true)
             {
-                return "RatingLow";
+                ViewModel.SortOption = "RatingLow";
             }
-
-            return "Title";
         }
-
-        private void SortOption_Changed(object sender, RoutedEventArgs e) => ApplyFilterAndSort();
 
         private void MovieCard_PointerEntered(object sender, PointerRoutedEventArgs e)
         {

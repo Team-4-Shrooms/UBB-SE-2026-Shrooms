@@ -4,7 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="using:MovieShop.Views"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <views:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Page.Resources>
 
     <Grid Background="#1E1E1E">
         <Grid Padding="32">
@@ -13,9 +18,8 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Button x:Name="BackButton"
-                    Grid.Row="0"
-                    Content=""
+            <Button Grid.Row="0"
+                    Content=""
                     FontFamily="Segoe MDL2 Assets"
                     FontSize="24"
                     Click="BackButton_Click"
@@ -49,41 +53,43 @@
                             Spacing="14"
                             MaxWidth="520">
 
-                    <TextBlock x:Name="TitleBlock"
+                    <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                                FontSize="36"
                                FontWeight="Bold"
                                Foreground="White"
                                TextWrapping="Wrap"/>
 
-                    <TextBlock x:Name="DescriptionBlock"
+                    <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}"
                                FontSize="16"
                                Foreground="#CCCCCC"
                                TextWrapping="Wrap"/>
 
-                    <TextBlock x:Name="RatingBlock"
+                    <TextBlock Text="{x:Bind ViewModel.RatingText, Mode=OneWay}"
                                FontSize="18"
                                Foreground="#FFC107"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="0,0,0,16">
 
-                        <TextBlock x:Name="OriginalPriceBlock"
-                                           Foreground="Gray"
-                                           FontSize="20"
-                                           TextDecorations="Strikethrough"
-                                           VerticalAlignment="Bottom"
-                                           Margin="0,0,0,3"
-                                           Visibility="Collapsed"/>
+                        <TextBlock Text="{x:Bind ViewModel.OriginalPriceText, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.HasActiveSale, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                   Foreground="Gray"
+                                   FontSize="20"
+                                   TextDecorations="Strikethrough"
+                                   VerticalAlignment="Bottom"
+                                   Margin="0,0,0,3"/>
 
-                        <TextBlock x:Name="PriceBlock"
-                                        FontSize="28"
-                                        Foreground="#1DB954"
-                                        FontWeight="Bold"
-                                        TextWrapping="Wrap"/>
+                        <TextBlock Text="{x:Bind ViewModel.PriceText, Mode=OneWay}"
+                                   FontSize="28"
+                                   Foreground="#1DB954"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"/>
 
                     </StackPanel>
 
-                    <Button x:Name="BuyMovieButton"
-                            Content="Buy movie"
+                    <Button Content="{x:Bind ViewModel.BuyButtonContent, Mode=OneWay}"
+                            IsEnabled="{x:Bind ViewModel.CanBuyMovie, Mode=OneWay}"
+                            Opacity="{x:Bind ViewModel.BuyButtonOpacity, Mode=OneWay}"
+                            ToolTipService.ToolTip="{x:Bind ViewModel.BuyButtonTooltip, Mode=OneWay}"
                             Click="BuyMovieButton_Click"
                             HorizontalAlignment="Stretch"
                             MinHeight="48"
@@ -96,16 +102,15 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="ReviewsButton"
-                                Grid.Column="0"
+                        <Button Grid.Column="0"
                                 Content="See reviews"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.StarDistributionTooltip, Mode=OneWay}"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center"
                                 MinHeight="44"
                                 CornerRadius="8"
                                 Click="ReviewsButton_Click"/>
-                        <Button x:Name="EventsButton"
-                                Grid.Column="1"
+                        <Button Grid.Column="1"
                                 Content="See related upcoming events"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center"
