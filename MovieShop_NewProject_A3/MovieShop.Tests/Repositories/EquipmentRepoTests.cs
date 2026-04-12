@@ -1,5 +1,4 @@
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
@@ -13,9 +12,8 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void FetchAvailableEquipment_ExecutesAndReturnsList()
+        public void FetchAvailableEquipment_ValidCall_ReturnsList()
         {
-            // Integration test
             var result = repository.FetchAvailableEquipment();
             Assert.NotNull(result);
         }

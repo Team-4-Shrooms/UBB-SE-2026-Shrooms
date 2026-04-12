@@ -1,10 +1,12 @@
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
     public class UserRepoTests
     {
+        private const int TestUserId = 1;
+        private const decimal TestBalance = 5000m;
+
         private readonly UserRepo repository;
 
         public UserRepoTests()
@@ -13,17 +15,16 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void GetBalance_ValidUser_NoException()
+        public void GetBalance_ValidUser_ExecutesWithoutException()
         {
-            // Integration test hitting actual database
-            var exception = Record.Exception(() => repository.GetBalance(1));
+            var exception = Record.Exception(() => repository.GetBalance(TestUserId));
             Assert.Null(exception);
         }
 
         [Fact]
-        public void UpdateBalance_ValidUser_NoException()
+        public void UpdateBalance_ValidUser_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => repository.UpdateBalance(1, 5000m));
+            var exception = Record.Exception(() => repository.UpdateBalance(TestUserId, TestBalance));
             Assert.Null(exception);
         }
     }

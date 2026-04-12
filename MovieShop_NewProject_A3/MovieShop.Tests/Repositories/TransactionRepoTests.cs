@@ -1,11 +1,11 @@
-using System.Threading.Tasks;
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
     public class TransactionRepoTests
     {
+        private const int TestUserId = 1;
+
         private readonly TransactionRepo repository;
 
         public TransactionRepoTests()
@@ -14,10 +14,10 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void GetTransactionsByUserId_ExecutesWithoutException()
+        public void GetTransactionsByUserId_ValidUser_ReturnsResult()
         {
-            var resultSync = repository.GetTransactionsByUserId(1);
-            Assert.NotNull(resultSync);
+            var result = repository.GetTransactionsByUserId(TestUserId);
+            Assert.NotNull(result);
         }
     }
 }

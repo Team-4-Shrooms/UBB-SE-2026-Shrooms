@@ -1,10 +1,11 @@
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
     public class InventoryRepoTests
     {
+        private const int TestUserId = 1;
+
         private readonly InventoryRepo repository;
 
         public InventoryRepoTests()
@@ -13,16 +14,16 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void GetOwnedMovies_ExecutesWithoutException()
+        public void GetOwnedMovies_ValidUser_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => repository.GetOwnedMovies(1));
+            var exception = Record.Exception(() => repository.GetOwnedMovies(TestUserId));
             Assert.Null(exception);
         }
 
         [Fact]
-        public void GetOwnedTickets_ExecutesWithoutException()
+        public void GetOwnedTickets_ValidUser_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => repository.GetOwnedTickets(1));
+            var exception = Record.Exception(() => repository.GetOwnedTickets(TestUserId));
             Assert.Null(exception);
         }
     }

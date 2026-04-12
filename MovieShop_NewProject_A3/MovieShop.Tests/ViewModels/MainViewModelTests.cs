@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Services;
@@ -8,6 +7,13 @@ namespace MovieShop.Tests.ViewModels
 {
     public class MainViewModelTests
     {
+        private const int NotLoggedInUserId = 0;
+        private const decimal ZeroBalance = 0m;
+        private const decimal InitialBalance = 100m;
+        private const decimal UpdatedBalance = 200m;
+        private const decimal RefreshedBalance = 300m;
+        private const decimal DisplayBalanceAmount = 150.50m;
+
         private readonly Mock<IWalletService> mockWalletService;
         private readonly Mock<IActiveSalesService> mockActiveSalesService;
         private readonly Mock<ISaleService> mockSaleService;
@@ -22,123 +28,167 @@ namespace MovieShop.Tests.ViewModels
         }
 
         [Fact]
-        public void Constructor_ValidUser_SetsBalanceAndNavigatesToShop()
+        public void Constructor_ValidUser_SetsBalance()
         {
-            // Arrange
-            mockWalletService.Setup(s => s.GetBalance(SessionManager.DefaultUserID)).Returns(100m);
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
+            mockWalletService.Setup(service => service.GetBalance(SessionManager.DefaultUserID)).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
 
-            // Act
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Assert
-            Assert.Equal(100m, viewModel.Balance);
+            Assert.Equal(InitialBalance, viewModel.Balance);
+        }
+
+        [Fact]
+        public void Constructor_ValidUser_NavigatesToShop()
+        {
+            mockWalletService.Setup(service => service.GetBalance(SessionManager.DefaultUserID)).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
+
+            var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
+
             Assert.Equal("Shop", viewModel.CurrentViewModel);
+        }
+
+        [Fact]
+        public void Constructor_ValidUser_InitializesFlashSaleVM()
+        {
+            mockWalletService.Setup(service => service.GetBalance(SessionManager.DefaultUserID)).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
+
+            var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
+
             Assert.NotNull(viewModel.FlashSaleVM);
         }
 
         [Fact]
         public void Constructor_InvalidUser_SetsBalanceToZero()
         {
-            // Arrange
-            SessionManager.CurrentUserID = 0;
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
+            SessionManager.CurrentUserID = NotLoggedInUserId;
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
 
-            // Act
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Assert
-            Assert.Equal(0m, viewModel.Balance);
+            Assert.Equal(ZeroBalance, viewModel.Balance);
         }
 
         [Fact]
         public void RefreshBalanceFromDatabase_ValidUser_UpdatesBalance()
         {
-            // Arrange
             SessionManager.CurrentUserID = SessionManager.DefaultUserID;
-            mockWalletService.Setup(s => s.GetBalance(SessionManager.DefaultUserID)).Returns(150m);
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
+            mockWalletService.Setup(service => service.GetBalance(SessionManager.DefaultUserID)).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Act
-            mockWalletService.Setup(s => s.GetBalance(SessionManager.DefaultUserID)).Returns(200m);
+            mockWalletService.Setup(service => service.GetBalance(SessionManager.DefaultUserID)).Returns(UpdatedBalance);
             viewModel.RefreshBalanceFromDatabase();
 
-            // Assert
-            Assert.Equal(200m, viewModel.Balance);
+            Assert.Equal(UpdatedBalance, viewModel.Balance);
         }
 
         [Fact]
         public void RefreshBalanceFromDatabase_InvalidUser_SetsBalanceToZero()
         {
-            // Arrange — currentUserID is captured at construction, so set session before ctor
-            SessionManager.CurrentUserID = 0;
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
+            SessionManager.CurrentUserID = NotLoggedInUserId;
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Act
             viewModel.RefreshBalanceFromDatabase();
 
-            // Assert
-            Assert.Equal(0m, viewModel.Balance);
+            Assert.Equal(ZeroBalance, viewModel.Balance);
         }
 
         [Fact]
-        public void Commands_Navigation_SetCurrentViewModel()
+        public void NavigateToMarketplaceCommand_SetsCurrentViewModel()
         {
-            // Arrange
-            mockWalletService.Setup(s => s.GetBalance(It.IsAny<int>())).Returns(100m);
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
-            var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
+            var viewModel = CreateDefaultViewModel();
 
-            // Act & Assert
             viewModel.NavigateToMarketplaceCommand.Execute(null);
+
             Assert.Equal("Marketplace", viewModel.CurrentViewModel);
+        }
+
+        [Fact]
+        public void NavigateToInventoryCommand_SetsCurrentViewModel()
+        {
+            var viewModel = CreateDefaultViewModel();
 
             viewModel.NavigateToInventoryCommand.Execute(null);
+
             Assert.Equal("Inventory", viewModel.CurrentViewModel);
+        }
+
+        [Fact]
+        public void NavigateToTicketsCommand_SetsCurrentViewModel()
+        {
+            var viewModel = CreateDefaultViewModel();
 
             viewModel.NavigateToTicketsCommand.Execute(null);
+
             Assert.Equal("Tickets", viewModel.CurrentViewModel);
+        }
+
+        [Fact]
+        public void NavigateToShopCommand_SetsCurrentViewModel()
+        {
+            var viewModel = CreateDefaultViewModel();
 
             viewModel.NavigateToShopCommand.Execute(null);
+
             Assert.Equal("Shop", viewModel.CurrentViewModel);
+        }
+
+        [Fact]
+        public void NavigateToWalletCommand_SetsWalletViewModel()
+        {
+            var viewModel = CreateDefaultViewModel();
 
             viewModel.NavigateToWalletCommand.Execute(null);
+
             Assert.IsType<WalletViewModel>(viewModel.CurrentViewModel);
         }
 
         [Fact]
-        public void RefreshWallet_UpdatesBalanceAndTransactions()
+        public void RefreshWallet_UpdatesBalance()
         {
-            // Arrange
-            mockWalletService.Setup(s => s.GetBalance(It.IsAny<int>())).Returns(100m);
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
-            mockWalletService.Setup(s => s.GetTransactionsByUserId(It.IsAny<int>())).Returns(new List<Transaction>());
+            mockWalletService.Setup(service => service.GetBalance(It.IsAny<int>())).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
+            mockWalletService.Setup(service => service.GetTransactionsByUserId(It.IsAny<int>())).Returns(new List<Transaction>());
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Act
-            mockWalletService.Setup(s => s.GetBalance(It.IsAny<int>())).Returns(300m);
+            mockWalletService.Setup(service => service.GetBalance(It.IsAny<int>())).Returns(RefreshedBalance);
             viewModel.RefreshWallet();
 
-            // Assert
-            Assert.Equal(300m, viewModel.Balance);
-            mockWalletService.Verify(s => s.GetTransactionsByUserId(It.IsAny<int>()), Times.AtLeastOnce);
+            Assert.Equal(RefreshedBalance, viewModel.Balance);
+        }
+
+        [Fact]
+        public void RefreshWallet_ReloadsTransactions()
+        {
+            mockWalletService.Setup(service => service.GetBalance(It.IsAny<int>())).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
+            mockWalletService.Setup(service => service.GetTransactionsByUserId(It.IsAny<int>())).Returns(new List<Transaction>());
+            var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
+
+            viewModel.RefreshWallet();
+
+            mockWalletService.Verify(service => service.GetTransactionsByUserId(It.IsAny<int>()), Times.AtLeastOnce);
         }
 
         [Fact]
         public void DisplayBalance_ReturnsFormattedCurrency()
         {
-            // Arrange
-            mockWalletService.Setup(s => s.GetBalance(It.IsAny<int>())).Returns(150.50m);
-            mockActiveSalesService.Setup(s => s.GetCurrentSales()).Returns(new List<ActiveSale>());
+            mockWalletService.Setup(service => service.GetBalance(It.IsAny<int>())).Returns(DisplayBalanceAmount);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
             var viewModel = new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
 
-            // Act
-            var display = viewModel.DisplayBalance;
+            Assert.Equal(DisplayBalanceAmount.ToString("C"), viewModel.DisplayBalance);
+        }
 
-            // Assert
-            Assert.Equal(150.50m.ToString("C"), display);
+        private MainViewModel CreateDefaultViewModel()
+        {
+            mockWalletService.Setup(service => service.GetBalance(It.IsAny<int>())).Returns(InitialBalance);
+            mockActiveSalesService.Setup(service => service.GetCurrentSales()).Returns(new List<ActiveSale>());
+            return new MainViewModel(mockWalletService.Object, mockActiveSalesService.Object, mockSaleService.Object);
         }
     }
 }

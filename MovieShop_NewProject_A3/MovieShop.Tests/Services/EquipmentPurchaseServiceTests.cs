@@ -1,4 +1,3 @@
-using System;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
@@ -9,6 +8,15 @@ namespace MovieShop.Tests.Services
 {
     public class EquipmentPurchaseServiceTests
     {
+        private const int ValidUserId = 1;
+        private const int ValidEquipmentId = 1;
+        private const decimal SufficientBalance = 100m;
+        private const decimal InsufficientBalance = 10m;
+        private const decimal LowBalance = 20m;
+        private const decimal EquipmentPrice = 50m;
+        private const decimal BalanceAfterPurchase = 50m;
+        private const string ValidAddress = "123 Main St";
+
         private readonly Mock<IEquipmentRepository> mockRepo;
         private readonly Mock<IUserRepository> mockUserRepo;
         private readonly EquipmentPurchaseService service;
@@ -25,55 +33,65 @@ namespace MovieShop.Tests.Services
         [Fact]
         public void CanAfford_SufficientBalance_ReturnsTrue()
         {
-            // Arrange
-            mockUserRepo.Setup(r => r.GetBalance(1)).Returns(100m);
+            mockUserRepo.Setup(repository => repository.GetBalance(ValidUserId)).Returns(SufficientBalance);
 
-            // Act
-            var result = service.CanAfford(1, 50m);
+            var result = service.CanAfford(ValidUserId, EquipmentPrice);
 
-            // Assert
             Assert.True(result);
-            Assert.Equal(100m, SessionManager.CurrentUserBalance);
+        }
+
+        [Fact]
+        public void CanAfford_SufficientBalance_UpdatesSessionBalance()
+        {
+            mockUserRepo.Setup(repository => repository.GetBalance(ValidUserId)).Returns(SufficientBalance);
+
+            service.CanAfford(ValidUserId, EquipmentPrice);
+
+            Assert.Equal(SufficientBalance, SessionManager.CurrentUserBalance);
         }
 
         [Fact]
         public void CanAfford_InsufficientBalance_ReturnsFalse()
         {
-            // Arrange
-            mockUserRepo.Setup(r => r.GetBalance(1)).Returns(20m);
+            mockUserRepo.Setup(repository => repository.GetBalance(ValidUserId)).Returns(LowBalance);
 
-            // Act
-            var result = service.CanAfford(1, 50m);
+            var result = service.CanAfford(ValidUserId, EquipmentPrice);
 
-            // Assert
             Assert.False(result);
         }
 
         [Fact]
         public void PurchaseEquipment_InsufficientFunds_ThrowsException()
         {
-            // Arrange
-            mockUserRepo.Setup(r => r.GetBalance(1)).Returns(10m);
+            mockUserRepo.Setup(repository => repository.GetBalance(ValidUserId)).Returns(InsufficientBalance);
 
-            // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => service.PurchaseEquipment(1, 1, 50m, "Address"));
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                service.PurchaseEquipment(ValidUserId, ValidEquipmentId, EquipmentPrice, ValidAddress));
             Assert.Contains("Insufficient funds", ex.Message);
         }
 
         [Fact]
-        public void PurchaseEquipment_SufficientFunds_CallsRepositoryAndUpdatesBalance()
+        public void PurchaseEquipment_SufficientFunds_CallsRepository()
         {
-            // Arrange
-            mockUserRepo.SetupSequence(r => r.GetBalance(1))
-                .Returns(100m) // First call during balance check
-                .Returns(50m);  // Call after purchase to update session
+            mockUserRepo.SetupSequence(repository => repository.GetBalance(ValidUserId))
+                .Returns(SufficientBalance)
+                .Returns(BalanceAfterPurchase);
 
-            // Act
-            service.PurchaseEquipment(1, 1, 50m, "123 Main St");
+            service.PurchaseEquipment(ValidUserId, ValidEquipmentId, EquipmentPrice, ValidAddress);
 
-            // Assert
-            mockRepo.Verify(r => r.PurchaseEquipment(1, 1, 50m, "123 Main St"), Times.Once);
-            Assert.Equal(50m, SessionManager.CurrentUserBalance);
+            mockRepo.Verify(repository => repository.PurchaseEquipment(ValidUserId, ValidEquipmentId, EquipmentPrice, ValidAddress), Times.Once);
+        }
+
+        [Fact]
+        public void PurchaseEquipment_SufficientFunds_UpdatesSessionBalance()
+        {
+            mockUserRepo.SetupSequence(repository => repository.GetBalance(ValidUserId))
+                .Returns(SufficientBalance)
+                .Returns(BalanceAfterPurchase);
+
+            service.PurchaseEquipment(ValidUserId, ValidEquipmentId, EquipmentPrice, ValidAddress);
+
+            Assert.Equal(BalanceAfterPurchase, SessionManager.CurrentUserBalance);
         }
     }
 }

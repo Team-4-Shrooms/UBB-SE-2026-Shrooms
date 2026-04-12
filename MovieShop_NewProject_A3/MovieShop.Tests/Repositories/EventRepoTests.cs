@@ -1,5 +1,4 @@
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
@@ -13,7 +12,7 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void GetAllEvents_ExecutesAndReturnsList()
+        public void GetAllEvents_ValidCall_ReturnsList()
         {
             var result = repository.GetAllEvents();
             Assert.NotNull(result);

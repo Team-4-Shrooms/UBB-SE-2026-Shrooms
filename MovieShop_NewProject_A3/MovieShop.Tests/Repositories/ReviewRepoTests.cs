@@ -1,10 +1,11 @@
 using MovieShop.Repositories;
-using Xunit;
 
 namespace MovieShop.Tests.Repositories
 {
     public class ReviewRepoTests
     {
+        private const int TestMovieId = 1;
+
         private readonly ReviewRepo repository;
 
         public ReviewRepoTests()
@@ -13,9 +14,9 @@ namespace MovieShop.Tests.Repositories
         }
 
         [Fact]
-        public void GetReviewsForMovie_ExecutesWithoutException()
+        public void GetReviewsForMovie_ValidMovie_ExecutesWithoutException()
         {
-            var exception = Record.Exception(() => repository.GetReviewsForMovie(1));
+            var exception = Record.Exception(() => repository.GetReviewsForMovie(TestMovieId));
             Assert.Null(exception);
         }
     }

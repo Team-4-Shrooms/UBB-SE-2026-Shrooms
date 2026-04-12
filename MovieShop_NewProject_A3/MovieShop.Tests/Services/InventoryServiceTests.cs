@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Repositories;
@@ -11,6 +8,14 @@ namespace MovieShop.Tests.Services
 {
     public class InventoryServiceTests
     {
+        private const int ValidUserId = 1;
+        private const int InvalidUserId = 0;
+        private const int ValidMovieId = 1;
+        private const int InvalidMovieId = 0;
+        private const int ValidEventId = 1;
+        private const int InvalidEventId = 0;
+        private const int RemainingItemId = 2;
+
         private readonly Mock<IInventoryRepository> mockRepo;
         private readonly InventoryService service;
 
@@ -23,57 +28,91 @@ namespace MovieShop.Tests.Services
         [Fact]
         public void RemoveMovie_InvalidUserId_ThrowsException()
         {
-            Assert.Throws<ArgumentException>(() => service.RemoveMovie(0, 1));
+            Assert.Throws<ArgumentException>(() => service.RemoveMovie(InvalidUserId, ValidMovieId));
         }
 
         [Fact]
         public void RemoveMovie_InvalidMovieId_ThrowsException()
         {
-            Assert.Throws<ArgumentException>(() => service.RemoveMovie(1, 0));
+            Assert.Throws<ArgumentException>(() => service.RemoveMovie(ValidUserId, InvalidMovieId));
         }
 
         [Fact]
-        public void RemoveMovie_ValidInput_CallsRepoAndReturnsRemaining()
+        public void RemoveMovie_ValidInput_CallsRepository()
         {
-            // Arrange
-            var movies = new List<Movie> { new Movie { ID = 2 } };
-            mockRepo.Setup(r => r.GetOwnedMovies(1)).Returns(movies);
+            var movies = new List<Movie> { new Movie { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedMovies(ValidUserId)).Returns(movies);
 
-            // Act
-            var result = service.RemoveMovie(1, 1);
+            service.RemoveMovie(ValidUserId, ValidMovieId);
 
-            // Assert
-            mockRepo.Verify(r => r.RemoveOwnedMovie(1, 1), Times.Once);
+            mockRepo.Verify(repository => repository.RemoveOwnedMovie(ValidUserId, ValidMovieId), Times.Once);
+        }
+
+        [Fact]
+        public void RemoveMovie_ValidInput_ReturnsRemainingMovies()
+        {
+            var movies = new List<Movie> { new Movie { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedMovies(ValidUserId)).Returns(movies);
+
+            var result = service.RemoveMovie(ValidUserId, ValidMovieId);
+
             Assert.Single(result);
-            Assert.Equal(2, result.First().ID);
+        }
+
+        [Fact]
+        public void RemoveMovie_ValidInput_ReturnsCorrectRemainingMovie()
+        {
+            var movies = new List<Movie> { new Movie { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedMovies(ValidUserId)).Returns(movies);
+
+            var result = service.RemoveMovie(ValidUserId, ValidMovieId);
+
+            Assert.Equal(RemainingItemId, result.First().ID);
         }
 
         [Fact]
         public void RemoveTicket_InvalidUserId_ThrowsException()
         {
-            Assert.Throws<ArgumentException>(() => service.RemoveTicket(0, 1));
+            Assert.Throws<ArgumentException>(() => service.RemoveTicket(InvalidUserId, ValidEventId));
         }
 
         [Fact]
         public void RemoveTicket_InvalidEventId_ThrowsException()
         {
-            Assert.Throws<ArgumentException>(() => service.RemoveTicket(1, 0));
+            Assert.Throws<ArgumentException>(() => service.RemoveTicket(ValidUserId, InvalidEventId));
         }
 
         [Fact]
-        public void RemoveTicket_ValidInput_CallsRepoAndReturnsRemaining()
+        public void RemoveTicket_ValidInput_CallsRepository()
         {
-            // Arrange
-            var tickets = new List<MovieEvent> { new MovieEvent { ID = 2 } };
-            mockRepo.Setup(r => r.GetOwnedTickets(1)).Returns(tickets);
+            var tickets = new List<MovieEvent> { new MovieEvent { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedTickets(ValidUserId)).Returns(tickets);
 
-            // Act
-            var result = service.RemoveTicket(1, 1);
+            service.RemoveTicket(ValidUserId, ValidEventId);
 
-            // Assert
-            mockRepo.Verify(r => r.RemoveOwnedTicket(1, 1), Times.Once);
+            mockRepo.Verify(repository => repository.RemoveOwnedTicket(ValidUserId, ValidEventId), Times.Once);
+        }
+
+        [Fact]
+        public void RemoveTicket_ValidInput_ReturnsRemainingTickets()
+        {
+            var tickets = new List<MovieEvent> { new MovieEvent { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedTickets(ValidUserId)).Returns(tickets);
+
+            var result = service.RemoveTicket(ValidUserId, ValidEventId);
+
             Assert.Single(result);
-            Assert.Equal(2, result.First().ID);
+        }
+
+        [Fact]
+        public void RemoveTicket_ValidInput_ReturnsCorrectRemainingTicket()
+        {
+            var tickets = new List<MovieEvent> { new MovieEvent { ID = RemainingItemId } };
+            mockRepo.Setup(repository => repository.GetOwnedTickets(ValidUserId)).Returns(tickets);
+
+            var result = service.RemoveTicket(ValidUserId, ValidEventId);
+
+            Assert.Equal(RemainingItemId, result.First().ID);
         }
     }
 }

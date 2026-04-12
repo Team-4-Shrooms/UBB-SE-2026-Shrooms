@@ -8,6 +8,17 @@ namespace MovieShop.Tests.Services
 {
     public class MoviePurchaseServiceTests
     {
+        private const int ValidUserId = 1;
+        private const int NotLoggedInUserId = 0;
+        private const int ValidMovieId = 1;
+        private const decimal MoviePrice = 10m;
+        private const decimal HighBalance = 100m;
+        private const decimal SufficientBalance = 20m;
+        private const decimal InsufficientBalance = 5m;
+        private const decimal NoDiscount = 0m;
+        private const double FullOpacity = 1.0;
+        private const double DisabledOpacity = 0.55;
+
         private readonly Mock<IMovieRepository> mockMovieRepo;
         private readonly Mock<IActiveSalesRepository> mockActiveSalesRepo;
         private readonly MoviePurchaseService service;
@@ -20,84 +31,189 @@ namespace MovieShop.Tests.Services
         }
 
         [Fact]
-        public void GetBuyButtonProps_UserOwnsMovie_ReturnsOwnedState()
+        public void GetBuyButtonProps_UserOwnsMovie_ReturnsOwnedContent()
         {
-            // Arrange
-            var movie = new Movie { ID = 1, Price = 10 };
-            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(true);
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(true);
 
-            // Act
-            var props = service.GetBuyButtonProps(movie, 1, true, 100);
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, HighBalance);
 
-            // Assert
             Assert.Equal("Owned", props.Content);
-            Assert.False(props.IsEnabled);
-            Assert.Null(props.ToolTip);
-            Assert.Equal(1.0, props.Opacity);
         }
 
         [Fact]
-        public void GetBuyButtonProps_NotLoggedIn_ReturnsLogInMessage()
+        public void GetBuyButtonProps_UserOwnsMovie_ReturnsDisabled()
         {
-            // Arrange
-            var movie = new Movie { ID = 1, Price = 10 };
-            mockMovieRepo.Setup(r => r.UserOwnsMovie(0, 1)).Returns(false);
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(true);
 
-            // Act
-            var props = service.GetBuyButtonProps(movie, 0, false, 0);
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, HighBalance);
 
-            // Assert
-            Assert.Equal("Buy movie", props.Content);
             Assert.False(props.IsEnabled);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_UserOwnsMovie_ReturnsNullToolTip()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(true);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, HighBalance);
+
+            Assert.Null(props.ToolTip);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_UserOwnsMovie_ReturnsFullOpacity()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(true);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, HighBalance);
+
+            Assert.Equal(FullOpacity, props.Opacity);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_NotLoggedIn_ReturnsBuyMovieContent()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(NotLoggedInUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, NotLoggedInUserId, false, 0);
+
+            Assert.Equal("Buy movie", props.Content);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_NotLoggedIn_ReturnsDisabled()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(NotLoggedInUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, NotLoggedInUserId, false, 0);
+
+            Assert.False(props.IsEnabled);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_NotLoggedIn_ReturnsLoginToolTip()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(NotLoggedInUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, NotLoggedInUserId, false, 0);
+
             Assert.Contains("must be logged in", props.ToolTip);
-            Assert.Equal(0.55, props.Opacity);
         }
 
         [Fact]
-        public void GetBuyButtonProps_LowBalance_ReturnsLowBalanceMessage()
+        public void GetBuyButtonProps_NotLoggedIn_ReturnsReducedOpacity()
         {
-            // Arrange
-            var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 }; // Effective price 10
-            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(NotLoggedInUserId, ValidMovieId)).Returns(false);
 
-            // Act
-            var props = service.GetBuyButtonProps(movie, 1, true, 5);
+            var props = service.GetBuyButtonProps(movie, NotLoggedInUserId, false, 0);
 
-            // Assert
+            Assert.Equal(DisabledOpacity, props.Opacity);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_LowBalance_ReturnsBuyMovieContent()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, InsufficientBalance);
+
             Assert.Equal("Buy movie", props.Content);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_LowBalance_ReturnsDisabled()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, InsufficientBalance);
+
             Assert.False(props.IsEnabled);
-            Assert.Contains("balance is too low", props.ToolTip);
-            Assert.Equal(0.55, props.Opacity);
         }
 
         [Fact]
-        public void GetBuyButtonProps_ValidPurchase_ReturnsEnabledState()
+        public void GetBuyButtonProps_LowBalance_ReturnsBalanceToolTip()
         {
-            // Arrange
-            var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 };
-            mockMovieRepo.Setup(r => r.UserOwnsMovie(1, 1)).Returns(false);
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
 
-            // Act
-            var props = service.GetBuyButtonProps(movie, 1, true, 20);
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, InsufficientBalance);
 
-            // Assert
+            Assert.Contains("balance is too low", props.ToolTip);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_LowBalance_ReturnsReducedOpacity()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, InsufficientBalance);
+
+            Assert.Equal(DisabledOpacity, props.Opacity);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_ValidPurchase_ReturnsBuyMovieContent()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, SufficientBalance);
+
             Assert.Equal("Buy movie", props.Content);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_ValidPurchase_ReturnsEnabled()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, SufficientBalance);
+
             Assert.True(props.IsEnabled);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_ValidPurchase_ReturnsNullToolTip()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, SufficientBalance);
+
             Assert.Null(props.ToolTip);
-            Assert.Equal(1.0, props.Opacity);
+        }
+
+        [Fact]
+        public void GetBuyButtonProps_ValidPurchase_ReturnsFullOpacity()
+        {
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
+            mockMovieRepo.Setup(repository => repository.UserOwnsMovie(ValidUserId, ValidMovieId)).Returns(false);
+
+            var props = service.GetBuyButtonProps(movie, ValidUserId, true, SufficientBalance);
+
+            Assert.Equal(FullOpacity, props.Opacity);
         }
 
         [Fact]
         public void PurchaseMovie_ValidPurchase_CallsRepository()
         {
-            // Arrange
-            var movie = new Movie { ID = 1, Price = 10, ActiveSaleDiscountPercent = 0 };
+            var movie = new Movie { ID = ValidMovieId, Price = MoviePrice, ActiveSaleDiscountPercent = NoDiscount };
 
-            // Act
-            service.PurchaseMovie(1, movie);
+            service.PurchaseMovie(ValidUserId, movie);
 
-            // Assert
-            mockMovieRepo.Verify(r => r.PurchaseMovie(1, 1, 10m), Times.Once);
+            mockMovieRepo.Verify(repository => repository.PurchaseMovie(ValidUserId, ValidMovieId, MoviePrice), Times.Once);
         }
     }
 }

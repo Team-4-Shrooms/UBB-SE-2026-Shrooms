@@ -1,115 +1,238 @@
-using System;
 using Moq;
 using MovieShop.Models;
 using MovieShop.Services;
 using MovieShop.ViewModels;
-using Xunit;
 
 namespace MovieShop.Tests.ViewModels
 {
     public class MovieDetailViewModelTests
     {
+        private const int LoggedInUserId = 1;
+        private const int NotLoggedInUserId = 0;
+        private const decimal InitialBalance = 100m;
+        private const decimal MoviePrice = 10m;
+        private const int TestMovieId = 42;
+        private const int AlternateMovieId = 7;
+        private const int DefaultMovieId = 1;
+        private const double FullOpacity = 1.0;
+        private const double HalfOpacity = 0.5;
+        private const string DefaultBuyButtonText = "Buy movie";
+        private const string OwnedButtonText = "Owned";
+        private const string OwnedTooltip = "already yours";
+        private const string StarTooltip = "\u2605\u2605\u2605";
+        private const string InsufficientBalanceTooltip = "Insufficient balance";
+        private const string NoMovieError = "No movie selected.";
+        private const string NotLoggedInError = "You must be logged in to make a purchase.";
+        private const string DbOfflineError = "db offline";
+
         private readonly Mock<IMoviePurchaseService> purchaseService = new ();
         private readonly Mock<IMovieReviewService> reviewService = new ();
         private readonly Mock<IMovieCatalogService> catalogService = new ();
 
         public MovieDetailViewModelTests()
         {
-            SessionManager.CurrentUserID = 1;
-            SessionManager.CurrentUserBalance = 100m;
+            SessionManager.CurrentUserID = LoggedInUserId;
+            SessionManager.CurrentUserBalance = InitialBalance;
         }
 
         [Fact]
-        public void Initialize_NullArgs_ClearsMovieAndResetsButton()
+        public void Initialize_NullArgs_ClearsMovie()
         {
             var viewModel = CreateViewModel();
 
             viewModel.Initialize(null);
 
             Assert.Null(viewModel.Movie);
-            Assert.False(viewModel.CanBuyMovie);
-            Assert.Equal("Buy movie", viewModel.BuyButtonContent);
         }
 
         [Fact]
-        public void Initialize_ValidArgs_AppliesDiscountAndLoadsTooltip()
+        public void Initialize_NullArgs_DisablesBuyButton()
         {
-            var movie = new Movie { ID = 42, Title = "Test", Price = 10m };
-            catalogService.Setup(service => service.ApplyDiscount(movie));
-            reviewService.Setup(service => service.BuildStarDistributionTooltip(42)).Returns("★★★");
-            purchaseService
-                .Setup(service => service.GetBuyButtonProps(movie, 1, true, It.IsAny<decimal>()))
-                .Returns(new BuyButtonProps("Buy movie", true, null, 1.0));
+            var viewModel = CreateViewModel();
+
+            viewModel.Initialize(null);
+
+            Assert.False(viewModel.CanBuyMovie);
+        }
+
+        [Fact]
+        public void Initialize_NullArgs_ResetsButtonText()
+        {
+            var viewModel = CreateViewModel();
+
+            viewModel.Initialize(null);
+
+            Assert.Equal(DefaultBuyButtonText, viewModel.BuyButtonContent);
+        }
+
+        [Fact]
+        public void Initialize_ValidArgs_SetsMovie()
+        {
+            var movie = new Movie { ID = TestMovieId, Title = "Test", Price = MoviePrice };
+            SetupValidMovie(movie);
 
             var viewModel = CreateViewModel();
             viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
 
             Assert.Same(movie, viewModel.Movie);
-            Assert.Equal("★★★", viewModel.StarDistributionTooltip);
+        }
+
+        [Fact]
+        public void Initialize_ValidArgs_SetsStarTooltip()
+        {
+            var movie = new Movie { ID = TestMovieId, Title = "Test", Price = MoviePrice };
+            SetupValidMovie(movie);
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            Assert.Equal(StarTooltip, viewModel.StarDistributionTooltip);
+        }
+
+        [Fact]
+        public void Initialize_ValidArgs_EnablesBuyButton()
+        {
+            var movie = new Movie { ID = TestMovieId, Title = "Test", Price = MoviePrice };
+            SetupValidMovie(movie);
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
             Assert.True(viewModel.CanBuyMovie);
             catalogService.Verify(service => service.ApplyDiscount(movie), Times.Once);
         }
 
         [Fact]
-        public void RefreshBuyButtonState_NoMovie_ResetsButton()
+        public void RefreshBuyButtonState_NoMovie_DisablesBuyButton()
         {
             var viewModel = CreateViewModel();
 
             viewModel.RefreshBuyButtonState();
 
             Assert.False(viewModel.CanBuyMovie);
-            Assert.Equal("Buy movie", viewModel.BuyButtonContent);
         }
 
         [Fact]
-        public void RefreshBuyButtonState_MirrorsPurchaseServiceProps()
+        public void RefreshBuyButtonState_NoMovie_ResetsButtonText()
         {
-            var movie = new Movie { ID = 7, Price = 10m };
+            var viewModel = CreateViewModel();
+
+            viewModel.RefreshBuyButtonState();
+
+            Assert.Equal(DefaultBuyButtonText, viewModel.BuyButtonContent);
+        }
+
+        [Fact]
+        public void RefreshBuyButtonState_MirrorsPurchaseServiceProps_DisablesBuyButton()
+        {
+            var movie = new Movie { ID = AlternateMovieId, Price = MoviePrice };
             purchaseService
-                .Setup(service => service.GetBuyButtonProps(movie, 1, true, It.IsAny<decimal>()))
-                .Returns(new BuyButtonProps("Owned", false, "already yours", 0.5));
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(OwnedButtonText, false, OwnedTooltip, HalfOpacity));
 
             var viewModel = CreateViewModel();
             viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
 
             Assert.False(viewModel.CanBuyMovie);
-            Assert.Equal("Owned", viewModel.BuyButtonContent);
-            Assert.Equal("already yours", viewModel.BuyButtonTooltip);
-            Assert.Equal(0.5, viewModel.BuyButtonOpacity);
         }
 
         [Fact]
-        public void TryPurchase_NoMovie_ReturnsFalseWithError()
+        public void RefreshBuyButtonState_MirrorsPurchaseServiceProps_SetsButtonContent()
         {
-            var viewModel = CreateViewModel();
-
-            var result = viewModel.TryPurchase(out var error);
-
-            Assert.False(result);
-            Assert.Equal("No movie selected.", error);
-        }
-
-        [Fact]
-        public void TryPurchase_NotLoggedIn_ReturnsFalseWithError()
-        {
-            SessionManager.CurrentUserID = 0;
-            var movie = new Movie { ID = 1, Price = 10m };
-            var viewModel = CreateViewModel();
-            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
-
-            var result = viewModel.TryPurchase(out var error);
-
-            Assert.False(result);
-            Assert.Equal("You must be logged in to make a purchase.", error);
-        }
-
-        [Fact]
-        public void TryPurchase_CannotBuy_ReturnsFalseWithTooltipError()
-        {
-            var movie = new Movie { ID = 1, Price = 10m };
+            var movie = new Movie { ID = AlternateMovieId, Price = MoviePrice };
             purchaseService
-                .Setup(service => service.GetBuyButtonProps(movie, 1, true, It.IsAny<decimal>()))
-                .Returns(new BuyButtonProps("Buy movie", false, "Insufficient balance", 0.5));
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(OwnedButtonText, false, OwnedTooltip, HalfOpacity));
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            Assert.Equal(OwnedButtonText, viewModel.BuyButtonContent);
+        }
+
+        [Fact]
+        public void RefreshBuyButtonState_MirrorsPurchaseServiceProps_SetsTooltip()
+        {
+            var movie = new Movie { ID = AlternateMovieId, Price = MoviePrice };
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(OwnedButtonText, false, OwnedTooltip, HalfOpacity));
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            Assert.Equal(OwnedTooltip, viewModel.BuyButtonTooltip);
+        }
+
+        [Fact]
+        public void RefreshBuyButtonState_MirrorsPurchaseServiceProps_SetsOpacity()
+        {
+            var movie = new Movie { ID = AlternateMovieId, Price = MoviePrice };
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(OwnedButtonText, false, OwnedTooltip, HalfOpacity));
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            Assert.Equal(HalfOpacity, viewModel.BuyButtonOpacity);
+        }
+
+        [Fact]
+        public void TryPurchase_NoMovie_ReturnsFalse()
+        {
+            var viewModel = CreateViewModel();
+
+            var result = viewModel.TryPurchase(out var error);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void TryPurchase_NoMovie_ReturnsNoMovieError()
+        {
+            var viewModel = CreateViewModel();
+
+            viewModel.TryPurchase(out var error);
+
+            Assert.Equal(NoMovieError, error);
+        }
+
+        [Fact]
+        public void TryPurchase_NotLoggedIn_ReturnsFalse()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+            SessionManager.CurrentUserID = NotLoggedInUserId;
+
+            var result = viewModel.TryPurchase(out var error);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void TryPurchase_NotLoggedIn_ReturnsLoginError()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+            SessionManager.CurrentUserID = NotLoggedInUserId;
+
+            viewModel.TryPurchase(out var error);
+
+            Assert.Equal(NotLoggedInError, error);
+        }
+
+        [Fact]
+        public void TryPurchase_CannotBuy_ReturnsFalse()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(DefaultBuyButtonText, false, InsufficientBalanceTooltip, HalfOpacity));
 
             var viewModel = CreateViewModel();
             viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
@@ -117,17 +240,30 @@ namespace MovieShop.Tests.ViewModels
             var result = viewModel.TryPurchase(out var error);
 
             Assert.False(result);
-            Assert.Equal("Insufficient balance", error);
+        }
+
+        [Fact]
+        public void TryPurchase_CannotBuy_ReturnsTooltipError()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(DefaultBuyButtonText, false, InsufficientBalanceTooltip, HalfOpacity));
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            viewModel.TryPurchase(out var error);
+
+            Assert.Equal(InsufficientBalanceTooltip, error);
             purchaseService.Verify(service => service.PurchaseMovie(It.IsAny<int>(), It.IsAny<Movie>()), Times.Never);
         }
 
         [Fact]
-        public void TryPurchase_Succeeds_CallsPurchaseService()
+        public void TryPurchase_Succeeds_ReturnsTrue()
         {
-            var movie = new Movie { ID = 1, Price = 10m };
-            purchaseService
-                .Setup(service => service.GetBuyButtonProps(movie, 1, true, It.IsAny<decimal>()))
-                .Returns(new BuyButtonProps("Buy movie", true, null, 1.0));
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
 
             var viewModel = CreateViewModel();
             viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
@@ -135,20 +271,31 @@ namespace MovieShop.Tests.ViewModels
             var result = viewModel.TryPurchase(out var error);
 
             Assert.True(result);
-            Assert.Equal(string.Empty, error);
-            purchaseService.Verify(service => service.PurchaseMovie(1, movie), Times.Once);
         }
 
         [Fact]
-        public void TryPurchase_ServiceThrows_ReturnsFalseWithMessage()
+        public void TryPurchase_Succeeds_ReturnsEmptyError()
         {
-            var movie = new Movie { ID = 1, Price = 10m };
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            viewModel.TryPurchase(out var error);
+
+            Assert.Equal(string.Empty, error);
+            purchaseService.Verify(service => service.PurchaseMovie(LoggedInUserId, movie), Times.Once);
+        }
+
+        [Fact]
+        public void TryPurchase_ServiceThrows_ReturnsFalse()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
             purchaseService
-                .Setup(service => service.GetBuyButtonProps(movie, 1, true, It.IsAny<decimal>()))
-                .Returns(new BuyButtonProps("Buy movie", true, null, 1.0));
-            purchaseService
-                .Setup(service => service.PurchaseMovie(1, movie))
-                .Throws(new InvalidOperationException("db offline"));
+                .Setup(service => service.PurchaseMovie(LoggedInUserId, movie))
+                .Throws(new InvalidOperationException(DbOfflineError));
 
             var viewModel = CreateViewModel();
             viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
@@ -156,10 +303,42 @@ namespace MovieShop.Tests.ViewModels
             var result = viewModel.TryPurchase(out var error);
 
             Assert.False(result);
-            Assert.Equal("db offline", error);
+        }
+
+        [Fact]
+        public void TryPurchase_ServiceThrows_ReturnsExceptionMessage()
+        {
+            var movie = new Movie { ID = DefaultMovieId, Price = MoviePrice };
+            SetupPurchasableMovie(movie);
+            purchaseService
+                .Setup(service => service.PurchaseMovie(LoggedInUserId, movie))
+                .Throws(new InvalidOperationException(DbOfflineError));
+
+            var viewModel = CreateViewModel();
+            viewModel.Initialize(new MovieDetailNavArgs { Movie = movie });
+
+            viewModel.TryPurchase(out var error);
+
+            Assert.Equal(DbOfflineError, error);
         }
 
         private MovieDetailViewModel CreateViewModel()
             => new (purchaseService.Object, reviewService.Object, catalogService.Object);
+
+        private void SetupValidMovie(Movie movie)
+        {
+            catalogService.Setup(service => service.ApplyDiscount(movie));
+            reviewService.Setup(service => service.BuildStarDistributionTooltip(TestMovieId)).Returns(StarTooltip);
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(DefaultBuyButtonText, true, null, FullOpacity));
+        }
+
+        private void SetupPurchasableMovie(Movie movie)
+        {
+            purchaseService
+                .Setup(service => service.GetBuyButtonProps(movie, LoggedInUserId, true, It.IsAny<decimal>()))
+                .Returns(new BuyButtonProps(DefaultBuyButtonText, true, null, FullOpacity));
+        }
     }
 }
