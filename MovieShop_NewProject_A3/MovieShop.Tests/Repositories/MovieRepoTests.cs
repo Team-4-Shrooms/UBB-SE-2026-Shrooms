@@ -1,3 +1,4 @@
+using System;
 using MovieShop.Repositories;
 
 namespace MovieShop.Tests.Repositories
@@ -16,6 +17,19 @@ namespace MovieShop.Tests.Repositories
         {
             var result = repository.GetAllMovies();
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void UserOwnsMovie_InvalidUserId_ReturnsFalse()
+        {
+            Assert.False(repository.UserOwnsMovie(0, 1));
+            Assert.False(repository.UserOwnsMovie(-1, 1));
+        }
+
+        [Fact]
+        public void PurchaseMovie_InvalidUserId_ThrowsInvalidOperation()
+        {
+            Assert.Throws<InvalidOperationException>(() => repository.PurchaseMovie(0, 1, 9.99m));
         }
     }
 }

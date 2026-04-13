@@ -1,3 +1,4 @@
+using System;
 using MovieShop.Repositories;
 
 namespace MovieShop.Tests.Repositories
@@ -16,6 +17,13 @@ namespace MovieShop.Tests.Repositories
         {
             var result = repository.GetAllEvents();
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void PurchaseTicket_InvalidUserId_ThrowsInvalidOperation()
+        {
+            Assert.Throws<InvalidOperationException>(() => repository.PurchaseTicket(0, 1));
+            Assert.Throws<InvalidOperationException>(() => repository.PurchaseTicket(-1, 1));
         }
     }
 }

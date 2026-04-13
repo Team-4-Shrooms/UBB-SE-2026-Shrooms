@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using MovieShop.Repositories;
 
 namespace MovieShop.Tests.Repositories
@@ -18,6 +20,23 @@ namespace MovieShop.Tests.Repositories
         {
             var exception = Record.Exception(() => repository.GetReviewsForMovie(TestMovieId));
             Assert.Null(exception);
+        }
+
+        [Fact]
+        public void GetReviewCounts_EmptyIds_ReturnsEmptyDictionary()
+        {
+            var result = repository.GetReviewCounts(Enumerable.Empty<int>());
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GetReviewCounts_OnlyDuplicateIds_DeduplicatesBeforeQuery()
+        {
+            var result = repository.GetReviewCounts(new List<int>());
+
+            Assert.Empty(result);
         }
     }
 }
