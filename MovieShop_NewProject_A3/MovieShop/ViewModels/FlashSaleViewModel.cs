@@ -63,10 +63,17 @@ namespace MovieShop.ViewModels
             expiryDate = saleEndTime;
             IsActive = true;
 
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += TimerTick;
-            timer.Start();
+            try
+            {
+                timer = new DispatcherTimer();
+                timer.Interval = TimeSpan.FromSeconds(1);
+                timer.Tick += TimerTick;
+                timer.Start();
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                timer = null;
+            }
 
             UpdateCountdown();
         }
@@ -90,7 +97,7 @@ namespace MovieShop.ViewModels
             }
             else
             {
-                timer.Stop();
+                timer?.Stop();
                 DisplayText = "Flash sale has expired!";
                 TimerText = "00:00:00";
 
